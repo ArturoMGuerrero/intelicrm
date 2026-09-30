@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+*.user
+*.pubxml
+*.PublishSettings
+appsettings.*.local.json
+*.db
+jwt-desarrollo.key
+*.db-shm
+*.db-wal

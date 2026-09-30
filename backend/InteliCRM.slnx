@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/InteliCRM.Api/InteliCRM.Api.csproj" />
+    <Project Path="src/InteliCRM.Application/InteliCRM.Application.csproj" />
+    <Project Path="src/InteliCRM.Domain/InteliCRM.Domain.csproj" />
+    <Project Path="src/InteliCRM.Infrastructure/InteliCRM.Infrastructure.csproj" />
+  </Folder>
+</Solution>

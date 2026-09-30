@@ -1,0 +1,30 @@
+# Frontend
+node_modules/
+dist/
+.vite/
+*.local
+*.tsbuildinfo
+
+# Backend
+bin/
+obj/
+.vs/
+*.user
+*.pubxml
+*.PublishSettings
+appsettings.*.local.json
+
+# Datos y secretos locales
+*.db
+*.db-shm
+*.db-wal
+jwt-desarrollo.key
+.env
+.env.*
+
+# Editor / sistema
+.vscode/*
+!.vscode/extensions.json
+.idea/
+Thumbs.db
+.DS_Store

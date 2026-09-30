@@ -1,0 +1,7 @@
+@InteliCRM.Api_HostAddress = http://localhost:5205
+
+# Documento OpenAPI (en desarrollo). La documentación interactiva está en /scalar/v1
+GET {{InteliCRM.Api_HostAddress}}/openapi/v1.json
+Accept: application/json
+
+###
