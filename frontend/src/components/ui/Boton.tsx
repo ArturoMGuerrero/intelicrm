@@ -12,8 +12,8 @@ const base =
   'disabled:cursor-not-allowed disabled:opacity-50'
 
 const variantes: Record<Variante, string> = {
-  primario: 'bg-marca-600 text-white shadow-sm hover:bg-marca-700',
-  secundario: 'border border-slate-300 bg-white text-slate-700 shadow-sm hover:bg-slate-50',
+  primario: 'bg-gradient-to-r from-marca-600 to-indigo-600 text-white shadow-md shadow-marca-500/25 hover:from-marca-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-marca-500/30',
+  secundario: 'border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-marca-200 hover:bg-marca-50 hover:text-marca-700',
   peligro: 'border border-red-200 bg-white text-red-600 hover:bg-red-50',
   fantasma: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
 }
@@ -67,7 +67,7 @@ export function BotonIcono({ icono, etiqueta, peligro = false, className, ...pro
       className={cn(
         'inline-flex items-center justify-center rounded-lg p-1.5 transition-colors disabled:cursor-not-allowed disabled:opacity-40',
         'focus-visible:outline-2 focus-visible:outline-marca-500',
-        peligro ? 'text-red-600 hover:bg-red-50' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800',
+        peligro ? 'text-rose-500 hover:bg-rose-50 hover:text-rose-600' : 'text-slate-400 hover:bg-marca-50 hover:text-marca-600',
         className,
       )}
       {...props}>

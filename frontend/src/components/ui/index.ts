@@ -2,6 +2,7 @@
 // (estilizadas solo con Tailwind) para mantener una UI consistente.
 export { cn } from './cn'
 export { Icono, type NombreIcono } from './Icono'
+export { acentos, ContextoAcento, useAcento, type Acento, type ColorAcento } from './Acento'
 export { Boton, BotonEnlace, BotonIcono, clasesBoton } from './Boton'
 export {
   Buscador, Campo, Checkbox, errorDeCampo, Input, nulo, numeroONulo, PieFormulario, Select, Textarea,

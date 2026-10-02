@@ -6,8 +6,8 @@ import { Icono } from './Icono'
 import { MensajeError } from './Estructura'
 
 const claseControl =
-  'block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-xs ' +
-  'placeholder:text-slate-400 focus:border-marca-500 focus:ring-2 focus:ring-marca-100 focus:outline-none ' +
+  'block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-xs ' +
+  'placeholder:text-slate-400 focus:border-marca-400 focus:ring-4 focus:ring-marca-100 focus:outline-none ' +
   'disabled:bg-slate-100 disabled:text-slate-500 aria-invalid:border-red-400 aria-invalid:ring-red-100'
 
 export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
