@@ -35,3 +35,9 @@ public enum TipoProducto
     Producto = 0,
     Servicio = 1
 }
+
+public enum TipoPersona
+{
+    Fisica = 0,
+    Moral = 1
+}

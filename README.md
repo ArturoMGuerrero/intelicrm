@@ -30,6 +30,12 @@ frontend/                    React 19 + Vite + TypeScript + Tailwind + TanStack 
 | Especialidades → "Puestos"      | Puestos                  | `/api/puestos`               |
 | Unidades → "Unidades de negocio"| Unidades de negocio      | `/api/unidades-negocio`      |
 | Tratamientos → "Acciones y actividades" | Acciones y actividades | `/api/acciones-actividades` |
+| Padecimientos → "Descripción de servicios" | Descripción de servicios | `/api/descripciones-servicio` |
+| Proveedores                     | Proveedores (contacto, condiciones, datos bancarios) | `/api/proveedores` |
+| Instrumentos de pago            | Instrumentos de pago     | `/api/instrumentos-pago`     |
+| Condiciones de pago             | Condiciones de pago (días de crédito) | `/api/condiciones-pago` |
+| Tipos de contacto               | Tipos de contacto        | `/api/tipos-contacto`        |
+| Sucursales / Almacenes          | Sucursales y almacenes   | `/api/sucursales`, `/api/almacenes` |
 
 Reglas de negocio incluidas: un empleado no puede tener citas traslapadas, folios consecutivos
 de cotización, cálculo de IVA 16 %, conversión de prospecto a cliente, bajas lógicas y registro
@@ -123,5 +129,11 @@ error 1920), por eso se usa SQLite para desarrollo.
 - PDF y envío por correo de cotizaciones; recordatorios de citas.
 - Mensajes de validación de los atributos (`[Required]`, `[EmailAddress]`) en español.
 - Paginación en listas grandes.
-- Módulos restantes: Ventas, Compras, Inventarios, Cuentas por cobrar/pagar, Facturación.
+- Módulos restantes del sistema original:
+  - Ventas: Cargos a prospectos, Remisiones, Facturación electrónica (CFDI).
+  - Compras: Pedido de faltantes, Órdenes de compra, Aplicar compra.
+  - Inventarios: Existencias, Kárdex, Ajustes de existencias.
+  - Cobros y pagos: Cuentas por cobrar, Cuentas por pagar, Caja (apertura/cierre).
+  - Configuración: Mi empresa (datos fiscales y certificados), Listas de precios, Promociones,
+    Definición de mensajes, Formatos.
 - Alta de nuevas empresas (cuentas) desde una pantalla de super-administrador.

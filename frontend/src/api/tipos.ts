@@ -5,6 +5,7 @@ export type EtapaProspecto =
 export type EstatusCita = 'Programada' | 'Confirmada' | 'Realizada' | 'Cancelada' | 'NoAsistio'
 export type EstatusCotizacion = 'Borrador' | 'Enviada' | 'Aceptada' | 'Rechazada' | 'Vencida'
 export type TipoProducto = 'Producto' | 'Servicio'
+export type TipoPersona = 'Fisica' | 'Moral'
 
 export interface Catalogo {
   id: number
@@ -12,6 +13,7 @@ export interface Catalogo {
   descripcion: string | null
   activo: boolean
   duracionMinutos: number | null
+  diasCredito: number | null
 }
 
 export interface Empleado {
@@ -202,4 +204,49 @@ export interface ModuloPermiso {
   nombre: string
   grupo: string
   acciones: string[]
+}
+
+export interface Proveedor {
+  id: number
+  razonSocial: string
+  nombreComercial: string | null
+  rfc: string | null
+  tipoPersona: TipoPersona
+  telefono: string | null
+  correo: string | null
+  direccion: string | null
+  contactoNombre: string | null
+  contactoTelefono: string | null
+  contactoCorreo: string | null
+  tipoContactoId: number | null
+  tipoContacto: string | null
+  condicionPagoId: number | null
+  condicionPago: string | null
+  diasCredito: number | null
+  instrumentoPagoId: number | null
+  instrumentoPago: string | null
+  banco: string | null
+  numeroCuenta: string | null
+  clabe: string | null
+  notas: string | null
+  activo: boolean
+}
+
+export interface Sucursal {
+  id: number
+  nombre: string
+  telefono: string | null
+  direccion: string | null
+  codigoPostal: string | null
+  activo: boolean
+  almacenes: number
+}
+
+export interface Almacen {
+  id: number
+  nombre: string
+  ubicacion: string | null
+  sucursalId: number
+  sucursal: string | null
+  activo: boolean
 }

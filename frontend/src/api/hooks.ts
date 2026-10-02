@@ -3,7 +3,8 @@ import { notificar } from '../components/ui'
 import { api, qs } from './cliente'
 import type {
   BitacoraEntrada, Catalogo, Cita, Cliente, Cotizacion, CotizacionResumen, Dashboard,
-  Empleado, EstatusCita, EstatusCotizacion, EtapaProspecto, ModuloPermiso, Producto, Prospecto, Rol, Usuario,
+  Almacen, Empleado, EstatusCita, EstatusCotizacion, EtapaProspecto, ModuloPermiso, Producto, Prospecto, Proveedor,
+  Rol, Sucursal, Usuario,
 } from './tipos'
 
 interface OpcionesMutacion<TVariables, TResultado> {
@@ -52,7 +53,9 @@ export const useDashboard = () =>
   useQuery({ queryKey: ['dashboard'], queryFn: () => api.get<Dashboard>('/dashboard') })
 
 // ---------- Catálogos simples ----------
-export type RutaCatalogo = 'puestos' | 'unidades-negocio' | 'acciones-actividades'
+export type RutaCatalogo =
+  | 'puestos' | 'unidades-negocio' | 'acciones-actividades' | 'tipos-contacto' | 'descripciones-servicio'
+  | 'instrumentos-pago' | 'condiciones-pago'
 
 export const useCatalogo = (ruta: RutaCatalogo, incluirInactivos = false) =>
   useQuery({
@@ -100,6 +103,41 @@ export const useGuardarProducto = () => useGuardar<Producto>('/productos', 'Prod
 
 export const useDesactivarProducto = () =>
   useMutacion((id: number) => api.delete(`/productos/${id}`), { exito: 'Producto dado de baja.' })
+
+// ---------- Proveedores ----------
+export const useProveedores = (buscar = '', incluirInactivos = false) =>
+  useQuery({
+    queryKey: ['proveedores', { buscar, incluirInactivos }],
+    queryFn: () => api.get<Proveedor[]>(`/proveedores${qs({ buscar, incluirInactivos })}`),
+  })
+
+export const useGuardarProveedor = () => useGuardar<Proveedor>('/proveedores', 'Proveedor')
+
+export const useDesactivarProveedor = () =>
+  useMutacion((id: number) => api.delete(`/proveedores/${id}`), { exito: 'Proveedor dado de baja.' })
+
+// ---------- Sucursales y almacenes ----------
+export const useSucursales = (incluirInactivos = false) =>
+  useQuery({
+    queryKey: ['sucursales', { incluirInactivos }],
+    queryFn: () => api.get<Sucursal[]>(`/sucursales${qs({ incluirInactivos })}`),
+  })
+
+export const useGuardarSucursal = () => useGuardar<Sucursal>('/sucursales', 'Sucursal')
+
+export const useDesactivarSucursal = () =>
+  useMutacion((id: number) => api.delete(`/sucursales/${id}`), { exito: 'Sucursal dada de baja.' })
+
+export const useAlmacenes = (incluirInactivos = false) =>
+  useQuery({
+    queryKey: ['almacenes', { incluirInactivos }],
+    queryFn: () => api.get<Almacen[]>(`/almacenes${qs({ incluirInactivos })}`),
+  })
+
+export const useGuardarAlmacen = () => useGuardar<Almacen>('/almacenes', 'Almacén')
+
+export const useDesactivarAlmacen = () =>
+  useMutacion((id: number) => api.delete(`/almacenes/${id}`), { exito: 'Almacén dado de baja.' })
 
 // ---------- Prospectos ----------
 export interface FiltroProspectos {

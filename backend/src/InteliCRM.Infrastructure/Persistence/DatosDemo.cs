@@ -85,6 +85,34 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
         var clienteNorte = new Cliente { RazonSocial = "Grupo Industrial del Norte S.A. de C.V.", NombreComercial = "GIN", Rfc = "GIN050505XY2", ContactoPrincipal = "Laura Garza", Telefono = "8180002222", Correo = "lgarza@gin.ejemplo.com", Direccion = "Monterrey, N.L." };
         db.Clientes.AddRange(clienteAcme, clienteNorte);
 
+        // ---------- Parametrización y proveedores ----------
+        var transferencia = new InstrumentoPago { Nombre = "Transferencia electrónica" };
+        db.InstrumentosPago.AddRange(new InstrumentoPago { Nombre = "Efectivo" }, transferencia,
+            new InstrumentoPago { Nombre = "Tarjeta de crédito/débito" }, new InstrumentoPago { Nombre = "Cheque" });
+
+        var credito30 = new CondicionPago { Nombre = "Crédito 30 días", DiasCredito = 30 };
+        db.CondicionesPago.AddRange(new CondicionPago { Nombre = "Contado", DiasCredito = 0 }, credito30,
+            new CondicionPago { Nombre = "Crédito 60 días", DiasCredito = 60 });
+
+        var contactoVentas = new TipoContacto { Nombre = "Ventas" };
+        db.TiposContacto.AddRange(contactoVentas, new TipoContacto { Nombre = "Cobranza" }, new TipoContacto { Nombre = "Soporte" });
+
+        db.DescripcionesServicio.AddRange(
+            new DescripcionServicio { Nombre = "Implementación de CRM", Descripcion = "Configuración inicial, carga de datos y puesta en marcha." },
+            new DescripcionServicio { Nombre = "Capacitación a usuarios", Descripcion = "Sesiones prácticas por módulo." });
+
+        db.Proveedores.Add(new Proveedor
+        {
+            RazonSocial = "Servicios en la Nube del Centro S.A. de C.V.", NombreComercial = "NubeCentro", Rfc = "SNC100101AB3",
+            Telefono = "5560001234", Correo = "facturas@nubecentro.ejemplo.com", Direccion = "Querétaro, Qro.",
+            ContactoNombre = "Mónica Ríos", ContactoCorreo = "mrios@nubecentro.ejemplo.com", TipoContacto = contactoVentas,
+            CondicionPago = credito30, InstrumentoPago = transferencia, Banco = "BBVA", Clabe = "012180001234567891",
+        });
+
+        var matriz = new Sucursal { Nombre = "Matriz", Telefono = "5550000000", Direccion = "Av. Insurgentes Sur 1000, CDMX", CodigoPostal = "03100" };
+        db.Sucursales.Add(matriz);
+        db.Almacenes.Add(new Almacen { Nombre = "Almacén general", Ubicacion = "Planta baja", Sucursal = matriz });
+
         // ---------- Prospectos ----------
         var p1 = new Prospecto { Nombre = "Roberto", Apellidos = "Hernández", Empresa = "Logística Express", Cargo = "Director de operaciones", Telefono = "5551112233", Correo = "roberto@logexpress.ejemplo.com", Origen = "Sitio web", Etapa = EtapaProspecto.Nuevo, ValorEstimado = 45000, EmpleadoResponsable = carlos, UnidadNegocio = pymes };
         var p2 = new Prospecto { Nombre = "Mariana", Apellidos = "Torres", Empresa = "Clínica San Ángel", Cargo = "Administradora", Telefono = "5552223344", Correo = "mtorres@sanangel.ejemplo.com", Origen = "Recomendación", Etapa = EtapaProspecto.Contactado, ValorEstimado = 60000, EmpleadoResponsable = sofia, UnidadNegocio = corporativo };

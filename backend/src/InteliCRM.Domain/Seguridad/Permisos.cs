@@ -21,7 +21,9 @@ public static class Permisos
         new("clientes", "Clientes", "Catálogos"),
         new("productos", "Productos y servicios", "Catálogos"),
         new("empleados", "Empleados", "Catálogos"),
-        new("catalogos", "Puestos, unidades y acciones", "Catálogos"),
+        new("proveedores", "Proveedores", "Catálogos"),
+        new("catalogos", "Catálogos simples (puestos, unidades, acciones, tipos y formas de pago)", "Catálogos"),
+        new("sucursales", "Sucursales y almacenes", "Configuración empresa"),
         new("usuarios", "Usuarios", "Seguridad"),
         new("roles", "Roles y permisos", "Seguridad"),
     ];

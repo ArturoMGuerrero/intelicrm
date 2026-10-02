@@ -13,7 +13,9 @@ import Login from './pages/Login'
 import Productos from './pages/Productos'
 import ProspectoDetalle from './pages/ProspectoDetalle'
 import Prospectos from './pages/Prospectos'
+import Proveedores from './pages/Proveedores'
 import Roles from './pages/Roles'
+import Sucursales from './pages/Sucursales'
 import Usuarios from './pages/Usuarios'
 import { RequierePermiso, RequiereSesion } from './sesion/Rutas'
 
@@ -42,6 +44,16 @@ export default function App() {
           <Route path="catalogos/acciones-actividades" element={conPermiso('catalogos.ver',
             <CatalogoSimple ruta="acciones-actividades" titulo="Acciones y actividades"
               descripcion="Tipos de actividad comercial: llamadas, visitas, demostraciones…" conDuracion />)} />
+          <Route path="catalogos/descripciones-servicio" element={conPermiso('catalogos.ver',
+            <CatalogoSimple ruta="descripciones-servicio" titulo="Descripción de servicios" descripcion="Servicios que ofrece la empresa y su alcance." />)} />
+          <Route path="catalogos/tipos-contacto" element={conPermiso('catalogos.ver',
+            <CatalogoSimple ruta="tipos-contacto" titulo="Tipos de contacto" descripcion="Áreas de contacto con proveedores y clientes: ventas, cobranza, soporte…" />)} />
+          <Route path="catalogos/instrumentos-pago" element={conPermiso('catalogos.ver',
+            <CatalogoSimple ruta="instrumentos-pago" titulo="Instrumentos de pago" descripcion="Medios de pago aceptados: efectivo, transferencia, tarjeta…" />)} />
+          <Route path="catalogos/condiciones-pago" element={conPermiso('catalogos.ver',
+            <CatalogoSimple ruta="condiciones-pago" titulo="Condiciones de pago" descripcion="Contado o crédito y sus días de plazo." conDiasCredito />)} />
+          <Route path="proveedores" element={conPermiso('proveedores.ver', <Proveedores />)} />
+          <Route path="sucursales" element={conPermiso('sucursales.ver', <Sucursales />)} />
           <Route path="usuarios" element={conPermiso('usuarios.ver', <Usuarios />)} />
           <Route path="roles" element={conPermiso('roles.ver', <Roles />)} />
           <Route path="*" element={<Vacio mensaje="Página no encontrada." />} />
