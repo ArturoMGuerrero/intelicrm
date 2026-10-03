@@ -1,4 +1,4 @@
-import type { EstatusCita, EstatusCotizacion, EtapaProspecto, TipoProducto } from '../api/tipos'
+import type { EstadoSaldo, EstatusCita, EstatusCotizacion, EtapaProspecto, TipoProducto } from '../api/tipos'
 import type { Tono } from '../components/ui'
 
 export const ETAPAS: EtapaProspecto[] = [
@@ -56,3 +56,17 @@ export const tonoEstatusCotizacion: Record<EstatusCotizacion, Tono> = {
 export const TIPOS_PRODUCTO: TipoProducto[] = ['Producto', 'Servicio']
 
 export const etiquetaAccion: Record<string, string> = { ver: 'Ver', editar: 'Crear y editar', eliminar: 'Eliminar' }
+
+export const etiquetaEstadoSaldo: Record<EstadoSaldo, string> = {
+  Pendiente: 'Pendiente',
+  Vencido: 'Vencido',
+  Liquidado: 'Liquidado',
+  Cancelado: 'Cancelado',
+}
+
+export const tonoEstadoSaldo: Record<EstadoSaldo, Tono> = {
+  Pendiente: 'cielo',
+  Vencido: 'rojo',
+  Liquidado: 'verde',
+  Cancelado: 'gris',
+}

@@ -36,6 +36,9 @@ const rutas = {
   reloj: 'M12 7v5l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
   telefono: 'M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z',
   tendencia: 'M3 17l6-6 4 4 8-8M15 7h6v6',
+  cobranza: 'M3 7h18v10H3zM12 15a3 3 0 100-6 3 3 0 000 6zM6 10v.01M18 14v.01',
+  recibo: 'M6 3h12v18l-3-2-3 2-3-2-3 2V3zM9 8h6M9 12h6M9 16h3',
+  salida: 'M12 19V5M5 12l7-7 7 7M4 21h16',
 } as const
 
 export type NombreIcono = keyof typeof rutas

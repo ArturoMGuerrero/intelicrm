@@ -1,3 +1,4 @@
+using InteliCRM.Application.Common;
 using InteliCRM.Application.Common.Exceptions;
 using InteliCRM.Application.Common.Interfaces;
 using InteliCRM.Domain.Entities;
@@ -107,32 +108,16 @@ public class CotizacionService(IAppDbContext db)
         if (req.EmpleadoId is { } eId && !await db.Empleados.AnyAsync(e => e.Id == eId, ct))
             throw new NoEncontradoException("Empleado", eId);
 
-        // Cargar de una vez los productos referenciados por las partidas.
-        var productoIds = req.Partidas.Where(p => p.ProductoId is not null).Select(p => p.ProductoId!.Value).Distinct().ToList();
-        var productos = await db.Productos.AsNoTracking()
-            .Where(p => productoIds.Contains(p.Id))
-            .ToDictionaryAsync(p => p.Id, ct);
-
-        var nuevasPartidas = new List<CotizacionPartida>();
-        foreach (var partida in req.Partidas)
-        {
-            Producto? producto = null;
-            if (partida.ProductoId is { } prodId && !productos.TryGetValue(prodId, out producto))
-                throw new NoEncontradoException("Producto", prodId);
-
-            var descripcion = !string.IsNullOrWhiteSpace(partida.Descripcion) ? partida.Descripcion.Trim() : producto?.Nombre;
-            if (string.IsNullOrWhiteSpace(descripcion))
-                throw new ReglaNegocioException("Cada partida necesita un producto o una descripción.");
-
-            nuevasPartidas.Add(new CotizacionPartida
+        var nuevasPartidas = (await Partidas.ValidarAsync(db, req.Partidas, ct))
+            .Select(p => new CotizacionPartida
             {
-                ProductoId = partida.ProductoId,
-                Descripcion = descripcion,
-                Cantidad = partida.Cantidad,
-                PrecioUnitario = partida.PrecioUnitario ?? producto?.Precio ?? 0,
-                DescuentoPorcentaje = partida.DescuentoPorcentaje
-            });
-        }
+                ProductoId = p.ProductoId,
+                Descripcion = p.Descripcion,
+                Cantidad = p.Cantidad,
+                PrecioUnitario = p.PrecioUnitario,
+                DescuentoPorcentaje = p.DescuentoPorcentaje
+            })
+            .ToList();
 
         cotizacion.ProspectoId = req.ProspectoId;
         cotizacion.ClienteId = req.ClienteId;

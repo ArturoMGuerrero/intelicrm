@@ -13,23 +13,31 @@ const secciones: { titulo: string; enlaces: Enlace[] }[] = [
   {
     titulo: 'Gestión CRM',
     enlaces: [
-      { a: '/', texto: 'Inicio', icono: 'inicio', color: 'violeta' },
-      { a: '/prospectos', texto: 'Prospectos', icono: 'prospectos', color: 'fucsia', permiso: 'prospectos.ver' },
+      { a: '/', texto: 'Inicio', icono: 'inicio', color: 'indigo' },
+      { a: '/prospectos', texto: 'Prospectos', icono: 'prospectos', color: 'azul', permiso: 'prospectos.ver' },
       { a: '/citas', texto: 'Citas', icono: 'citas', color: 'cielo', permiso: 'citas.ver' },
       { a: '/cotizaciones', texto: 'Cotizaciones', icono: 'cotizaciones', color: 'ambar', permiso: 'cotizaciones.ver' },
+    ],
+  },
+  {
+    titulo: 'Ventas, cobros y pagos',
+    enlaces: [
+      { a: '/cargos', texto: 'Cargos', icono: 'recibo', color: 'azul', permiso: 'cargos.ver' },
+      { a: '/cobranza', texto: 'Cuentas por cobrar', icono: 'cobranza', color: 'esmeralda', permiso: 'cobranza.ver' },
+      { a: '/cuentas-pagar', texto: 'Cuentas por pagar', icono: 'salida', color: 'ambar', permiso: 'cuentas-pagar.ver' },
     ],
   },
   {
     titulo: 'Catálogos',
     enlaces: [
       { a: '/clientes', texto: 'Clientes', icono: 'clientes', color: 'esmeralda', permiso: 'clientes.ver' },
-      { a: '/proveedores', texto: 'Proveedores', icono: 'proveedores', color: 'naranja', permiso: 'proveedores.ver' },
+      { a: '/proveedores', texto: 'Proveedores', icono: 'proveedores', color: 'ambar', permiso: 'proveedores.ver' },
       { a: '/productos', texto: 'Productos y servicios', icono: 'productos', color: 'turquesa', permiso: 'productos.ver' },
       { a: '/empleados', texto: 'Empleados', icono: 'empleados', color: 'indigo', permiso: 'empleados.ver' },
-      { a: '/catalogos/acciones-actividades', texto: 'Acciones y actividades', icono: 'rayo', color: 'rosa', permiso: 'catalogos.ver' },
-      { a: '/catalogos/descripciones-servicio', texto: 'Descripción de servicios', icono: 'brillo', color: 'morado', permiso: 'catalogos.ver' },
-      { a: '/catalogos/puestos', texto: 'Puestos', icono: 'maletin', color: 'cian', permiso: 'catalogos.ver' },
-      { a: '/catalogos/unidades-negocio', texto: 'Unidades de negocio', icono: 'cuadricula', color: 'lima', permiso: 'catalogos.ver' },
+      { a: '/catalogos/acciones-actividades', texto: 'Acciones y actividades', icono: 'rayo', color: 'pizarra', permiso: 'catalogos.ver' },
+      { a: '/catalogos/descripciones-servicio', texto: 'Descripción de servicios', icono: 'brillo', color: 'turquesa', permiso: 'catalogos.ver' },
+      { a: '/catalogos/puestos', texto: 'Puestos', icono: 'maletin', color: 'cielo', permiso: 'catalogos.ver' },
+      { a: '/catalogos/unidades-negocio', texto: 'Unidades de negocio', icono: 'cuadricula', color: 'esmeralda', permiso: 'catalogos.ver' },
     ],
   },
   {
@@ -38,14 +46,14 @@ const secciones: { titulo: string; enlaces: Enlace[] }[] = [
       { a: '/catalogos/instrumentos-pago', texto: 'Instrumentos de pago', icono: 'pago', color: 'esmeralda', permiso: 'catalogos.ver' },
       { a: '/catalogos/condiciones-pago', texto: 'Condiciones de pago', icono: 'reloj', color: 'ambar', permiso: 'catalogos.ver' },
       { a: '/catalogos/tipos-contacto', texto: 'Tipos de contacto', icono: 'telefono', color: 'cielo', permiso: 'catalogos.ver' },
-      { a: '/sucursales', texto: 'Sucursales y almacenes', icono: 'sucursales', color: 'naranja', permiso: 'sucursales.ver' },
+      { a: '/sucursales', texto: 'Sucursales y almacenes', icono: 'sucursales', color: 'ambar', permiso: 'sucursales.ver' },
     ],
   },
   {
     titulo: 'Seguridad',
     enlaces: [
-      { a: '/usuarios', texto: 'Usuarios', icono: 'usuarios', color: 'rosa', permiso: 'usuarios.ver' },
-      { a: '/roles', texto: 'Roles y permisos', icono: 'escudo', color: 'violeta', permiso: 'roles.ver' },
+      { a: '/usuarios', texto: 'Usuarios', icono: 'usuarios', color: 'pizarra', permiso: 'usuarios.ver' },
+      { a: '/roles', texto: 'Roles y permisos', icono: 'escudo', color: 'indigo', permiso: 'roles.ver' },
     ],
   },
 ]
@@ -68,7 +76,7 @@ function Navegacion({ onNavegar }: { onNavegar?: () => void }) {
         if (visibles.length === 0) return null
         return (
           <div key={s.titulo}>
-            <p className="px-3 pb-2 text-[11px] font-semibold tracking-widest text-indigo-300/60 uppercase">{s.titulo}</p>
+            <p className="px-3 pb-2 text-[11px] font-semibold tracking-widest text-slate-500 uppercase">{s.titulo}</p>
             <ul className="space-y-0.5">
               {visibles.map((e) => (
                 <li key={e.a}>
@@ -76,12 +84,12 @@ function Navegacion({ onNavegar }: { onNavegar?: () => void }) {
                     className={({ isActive }) => cn(
                       'group flex items-center gap-3 rounded-xl px-2.5 py-1.5 text-sm font-medium transition-all',
                       isActive
-                        ? 'bg-white/12 text-white shadow-inner ring-1 ring-white/10'
-                        : 'text-indigo-100/75 hover:bg-white/6 hover:text-white')}>
+                        ? 'bg-white/10 text-white'
+                        : 'text-slate-300 hover:bg-white/5 hover:text-white')}>
                     {({ isActive }) => (
                       <>
                         <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all',
-                          isActive ? cn('bg-gradient-to-br text-white shadow-md', acentos[e.color].chip) : acentos[e.color].menu)}>
+                          isActive ? acentos[e.color].menuActivo : acentos[e.color].menu)}>
                           <Icono nombre={e.icono} className="h-4 w-4" />
                         </span>
                         {e.texto}
@@ -101,19 +109,19 @@ function Navegacion({ onNavegar }: { onNavegar?: () => void }) {
 function Marca({ clara = false }: { clara?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500 via-marca-500 to-sky-400 text-sm font-bold text-white shadow-lg shadow-fuchsia-500/30">
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-marca-600 text-sm font-bold text-white">
         iC
       </div>
       <span className={cn('text-lg font-bold tracking-tight', clara ? 'text-white' : 'text-slate-900')}>
-        Inteli<span className={clara ? 'text-fuchsia-300' : 'text-marca-600'}>CRM</span>
+        Inteli<span className={clara ? 'text-marca-300' : 'text-marca-600'}>CRM</span>
       </span>
     </div>
   )
 }
 
-/** Fondo del menú lateral: degradado oscuro índigo → violeta. */
-const fondoMenu = 'bg-gradient-to-b from-indigo-950 via-violet-950 to-purple-950'
-const botonMenu = 'text-indigo-200 hover:bg-white/10 hover:text-white'
+/** Fondo del menú lateral: gris pizarra oscuro. */
+const fondoMenu = 'bg-gradient-to-b from-slate-900 to-slate-950'
+const botonMenu = 'text-slate-400 hover:bg-white/10 hover:text-white'
 
 /** Tarjeta del usuario con sesión: nombre, empresa, rol y acciones. */
 function PanelUsuario({ onCambiarPassword }: { onCambiarPassword: () => void }) {
@@ -123,13 +131,13 @@ function PanelUsuario({ onCambiarPassword }: { onCambiarPassword: () => void }) 
 
   return (
     <div className="p-3">
-      <div className="flex items-center gap-3 rounded-xl bg-white/8 px-2.5 py-2.5 ring-1 ring-white/10">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-400 to-marca-600 text-sm font-semibold text-white shadow-md shadow-fuchsia-500/30">
+      <div className="flex items-center gap-3 rounded-xl bg-white/5 px-2.5 py-2.5">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-marca-500/30 text-sm font-semibold text-marca-100">
           {iniciales}
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-white">{usuario.nombre}</p>
-          <p className="truncate text-xs text-indigo-200/70" title={`${usuario.cuenta} · ${usuario.rol}`}>{usuario.cuenta} · {usuario.rol}</p>
+          <p className="truncate text-xs text-slate-400" title={`${usuario.cuenta} · ${usuario.rol}`}>{usuario.cuenta} · {usuario.rol}</p>
         </div>
         <BotonIcono icono="llave" etiqueta="Cambiar contraseña" onClick={onCambiarPassword} className={botonMenu} />
         <BotonIcono icono="salir" etiqueta="Cerrar sesión" onClick={cerrarSesion} className={botonMenu} />
@@ -191,7 +199,7 @@ export default function Layout() {
       </header>
       {menuAbierto && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-indigo-950/50 backdrop-blur-sm" onClick={() => setMenuAbierto(false)} />
+          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setMenuAbierto(false)} />
           <div className={cn('absolute inset-y-0 left-0 flex w-72 flex-col shadow-2xl', fondoMenu)}>
             <div className="flex h-14 items-center justify-between border-b border-white/10 px-4">
               <Marca clara />

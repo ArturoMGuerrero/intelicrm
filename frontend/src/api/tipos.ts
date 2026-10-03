@@ -250,3 +250,87 @@ export interface Almacen {
   sucursal: string | null
   activo: boolean
 }
+
+// ---------- Cobranza y cuentas por pagar ----------
+export type EstatusDocumento = 'Vigente' | 'Cancelado'
+export type EstadoSaldo = 'Pendiente' | 'Vencido' | 'Liquidado' | 'Cancelado'
+export type FiltroEstadoSaldo = 'ConSaldo' | 'Pendiente' | 'Vencido' | 'Liquidado' | 'Cancelado' | 'Todos'
+
+export interface Pago {
+  id: number
+  fecha: string
+  monto: number
+  instrumentoPagoId: number | null
+  instrumentoPago: string | null
+  referencia: string | null
+  notas: string | null
+  cancelado: boolean
+  fechaCancelacion: string | null
+}
+
+/** Campos comunes de un documento con saldo (cargo o cuenta por pagar). */
+export interface DocumentoSaldo {
+  id: number
+  folio: string
+  fecha: string
+  fechaVencimiento: string
+  diasCredito: number
+  total: number
+  pagado: number
+  saldo: number
+  estado: EstadoSaldo
+  diasVencido: number
+}
+
+export interface CargoResumen extends DocumentoSaldo {
+  prospectoId: number | null
+  clienteId: number | null
+  destinatario: string
+  cotizacion: string | null
+}
+
+export interface Cargo extends CargoResumen {
+  condicionPagoId: number | null
+  condicionPago: string | null
+  empleadoId: number | null
+  empleado: string | null
+  cotizacionId: number | null
+  notas: string | null
+  estatus: EstatusDocumento
+  motivoCancelacion: string | null
+  subtotal: number
+  iva: number
+  partidas: Partida[]
+  pagos: Pago[]
+}
+
+export interface CuentaPorPagarResumen extends DocumentoSaldo {
+  folioProveedor: string | null
+  proveedorId: number
+  proveedor: string
+  concepto: string
+}
+
+export interface CuentaPorPagar extends CuentaPorPagarResumen {
+  condicionPagoId: number | null
+  condicionPago: string | null
+  notas: string | null
+  estatus: EstatusDocumento
+  motivoCancelacion: string | null
+  subtotal: number
+  iva: number
+  pagos: Pago[]
+}
+
+export interface ResumenSaldos {
+  totalPorSaldar: number
+  totalVencido: number
+  documentosConSaldo: number
+  documentosVencidos: number
+  saldadoEsteMes: number
+  alCorriente: number
+  vencido1a30: number
+  vencido31a60: number
+  vencido61a90: number
+  vencidoMas90: number
+}

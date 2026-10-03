@@ -2,11 +2,16 @@ import type { ReactNode } from 'react'
 import { Route, Routes } from 'react-router'
 import Layout from './components/Layout'
 import { Vacio } from './components/ui'
+import CargoDetalle from './pages/CargoDetalle'
+import CargoNuevo from './pages/CargoNuevo'
+import Cargos from './pages/Cargos'
 import CatalogoSimple from './pages/CatalogoSimple'
 import Citas from './pages/Citas'
 import Clientes from './pages/Clientes'
+import Cobranza from './pages/Cobranza'
 import CotizacionEditor from './pages/CotizacionEditor'
 import Cotizaciones from './pages/Cotizaciones'
+import CuentasPorPagar from './pages/CuentasPorPagar'
 import Empleados from './pages/Empleados'
 import Inicio from './pages/Inicio'
 import Login from './pages/Login'
@@ -34,6 +39,11 @@ export default function App() {
           <Route path="cotizaciones" element={conPermiso('cotizaciones.ver', <Cotizaciones />)} />
           <Route path="cotizaciones/nueva" element={conPermiso('cotizaciones.editar', <CotizacionEditor />)} />
           <Route path="cotizaciones/:id" element={conPermiso('cotizaciones.ver', <CotizacionEditor />)} />
+          <Route path="cargos" element={conPermiso('cargos.ver', <Cargos />)} />
+          <Route path="cargos/nuevo" element={conPermiso('cargos.editar', <CargoNuevo />)} />
+          <Route path="cargos/:id" element={conPermiso('cargos.ver', <CargoDetalle />)} />
+          <Route path="cobranza" element={conPermiso('cobranza.ver', <Cobranza />)} />
+          <Route path="cuentas-pagar" element={conPermiso('cuentas-pagar.ver', <CuentasPorPagar />)} />
           <Route path="clientes" element={conPermiso('clientes.ver', <Clientes />)} />
           <Route path="productos" element={conPermiso('productos.ver', <Productos />)} />
           <Route path="empleados" element={conPermiso('empleados.ver', <Empleados />)} />

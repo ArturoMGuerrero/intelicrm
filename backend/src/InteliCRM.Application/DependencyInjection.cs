@@ -1,6 +1,7 @@
 using InteliCRM.Application.Catalogos;
 using InteliCRM.Application.Citas;
 using InteliCRM.Application.Clientes;
+using InteliCRM.Application.Cobranza;
 using InteliCRM.Application.Cotizaciones;
 using InteliCRM.Application.Dashboard;
 using InteliCRM.Application.Empleados;
@@ -26,6 +27,8 @@ public static class DependencyInjection
         services.AddScoped<ProspectoService>();
         services.AddScoped<CitaService>();
         services.AddScoped<CotizacionService>();
+        services.AddScoped<CargoService>();
+        services.AddScoped<CuentaPorPagarService>();
         services.AddScoped<DashboardService>();
         services.AddScoped<AuthService>();
         services.AddScoped<UsuarioService>();

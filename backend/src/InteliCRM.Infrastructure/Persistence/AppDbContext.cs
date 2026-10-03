@@ -33,6 +33,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IUsuarioActual
     public DbSet<Proveedor> Proveedores => Set<Proveedor>();
     public DbSet<Sucursal> Sucursales => Set<Sucursal>();
     public DbSet<Almacen> Almacenes => Set<Almacen>();
+    public DbSet<Cargo> Cargos => Set<Cargo>();
+    public DbSet<PagoCargo> PagosCargo => Set<PagoCargo>();
+    public DbSet<CuentaPorPagar> CuentasPorPagar => Set<CuentaPorPagar>();
+    public DbSet<PagoProveedor> PagosProveedor => Set<PagoProveedor>();
     public DbSet<Cuenta> Cuentas => Set<Cuenta>();
     public DbSet<Rol> Roles => Set<Rol>();
 

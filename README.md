@@ -36,6 +36,14 @@ frontend/                    React 19 + Vite + TypeScript + Tailwind + TanStack 
 | Condiciones de pago             | Condiciones de pago (días de crédito) | `/api/condiciones-pago` |
 | Tipos de contacto               | Tipos de contacto        | `/api/tipos-contacto`        |
 | Sucursales / Almacenes          | Sucursales y almacenes   | `/api/sucursales`, `/api/almacenes` |
+| Cargos a prospectos / Remisión  | Cargos (desde cotización o directos) | `/api/cargos`          |
+| Cuentas por cobrar              | Cobranza: saldos, antigüedad y pagos | `/api/cobranza`      |
+| Cuentas por pagar               | Facturas de proveedor y sus pagos | `/api/cuentas-pagar`    |
+
+Cobranza: un cargo no se edita (se cancela, solo si no tiene pagos vigentes); los pagos no se borran, se
+cancelan y el saldo se recalcula; no se aceptan pagos mayores al saldo ni con fecha futura; una cotización
+aceptada solo puede tener un cargo vigente. Las cuentas por pagar toman los días de crédito de la condición
+de pago del proveedor y no permiten repetir el folio de factura de un mismo proveedor.
 
 Reglas de negocio incluidas: un empleado no puede tener citas traslapadas, folios consecutivos
 de cotización, cálculo de IVA 16 %, conversión de prospecto a cliente, bajas lógicas y registro
@@ -130,10 +138,10 @@ error 1920), por eso se usa SQLite para desarrollo.
 - Mensajes de validación de los atributos (`[Required]`, `[EmailAddress]`) en español.
 - Paginación en listas grandes.
 - Módulos restantes del sistema original:
-  - Ventas: Cargos a prospectos, Remisiones, Facturación electrónica (CFDI).
+  - Ventas: Facturación electrónica (CFDI). Requiere elegir un proveedor de timbrado (PAC).
   - Compras: Pedido de faltantes, Órdenes de compra, Aplicar compra.
   - Inventarios: Existencias, Kárdex, Ajustes de existencias.
-  - Cobros y pagos: Cuentas por cobrar, Cuentas por pagar, Caja (apertura/cierre).
+  - Caja (apertura/cierre): en el sistema original estas páginas estaban vacías, hay que definirla.
   - Configuración: Mi empresa (datos fiscales y certificados), Listas de precios, Promociones,
     Definición de mensajes, Formatos.
 - Alta de nuevas empresas (cuentas) desde una pantalla de super-administrador.
