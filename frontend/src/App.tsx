@@ -8,18 +8,28 @@ import Cargos from './pages/Cargos'
 import CatalogoSimple from './pages/CatalogoSimple'
 import Citas from './pages/Citas'
 import Clientes from './pages/Clientes'
+import Compras from './pages/Compras'
 import Cobranza from './pages/Cobranza'
 import CotizacionEditor from './pages/CotizacionEditor'
 import Cotizaciones from './pages/Cotizaciones'
 import CuentasPorPagar from './pages/CuentasPorPagar'
 import Empleados from './pages/Empleados'
+import Faltantes from './pages/Faltantes'
+import Formatos from './pages/Formatos'
 import Inicio from './pages/Inicio'
+import Inventario from './pages/Inventario'
+import ListasPrecios from './pages/ListasPrecios'
+import Mensajes from './pages/Mensajes'
 import Login from './pages/Login'
+import MiEmpresa from './pages/MiEmpresa'
+import OrdenCompra from './pages/OrdenCompra'
+import Promociones from './pages/Promociones'
 import Productos from './pages/Productos'
 import ProspectoDetalle from './pages/ProspectoDetalle'
 import Prospectos from './pages/Prospectos'
 import Proveedores from './pages/Proveedores'
 import Roles from './pages/Roles'
+import Soporte from './pages/Soporte'
 import Sucursales from './pages/Sucursales'
 import Usuarios from './pages/Usuarios'
 import { RequierePermiso, RequiereSesion } from './sesion/Rutas'
@@ -44,6 +54,17 @@ export default function App() {
           <Route path="cargos/:id" element={conPermiso('cargos.ver', <CargoDetalle />)} />
           <Route path="cobranza" element={conPermiso('cobranza.ver', <Cobranza />)} />
           <Route path="cuentas-pagar" element={conPermiso('cuentas-pagar.ver', <CuentasPorPagar />)} />
+          <Route path="compras" element={conPermiso('compras.ver', <Compras />)} />
+          <Route path="compras/nueva" element={conPermiso('compras.editar', <OrdenCompra />)} />
+          <Route path="compras/faltantes" element={conPermiso('compras.ver', <Faltantes />)} />
+          <Route path="compras/:id" element={conPermiso('compras.ver', <OrdenCompra />)} />
+          <Route path="inventario" element={conPermiso('inventario.ver', <Inventario />)} />
+          <Route path="listas-precios" element={conPermiso('listas-precios.ver', <ListasPrecios />)} />
+          <Route path="empresa" element={<MiEmpresa />} />
+          <Route path="mensajes" element={conPermiso('mensajes.ver', <Mensajes />)} />
+          <Route path="promociones" element={conPermiso('promociones.ver', <Promociones />)} />
+          <Route path="formatos" element={conPermiso('formatos.ver', <Formatos />)} />
+          <Route path="soporte" element={<Soporte />} />
           <Route path="clientes" element={conPermiso('clientes.ver', <Clientes />)} />
           <Route path="productos" element={conPermiso('productos.ver', <Productos />)} />
           <Route path="empleados" element={conPermiso('empleados.ver', <Empleados />)} />

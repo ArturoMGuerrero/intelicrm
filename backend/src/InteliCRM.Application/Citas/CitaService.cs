@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using InteliCRM.Application.Common.Exceptions;
 using InteliCRM.Application.Common.Interfaces;
+using InteliCRM.Application.Empleados;
 using InteliCRM.Domain.Entities;
 using InteliCRM.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -52,7 +53,7 @@ public class CambiarEstatusCitaRequest
     public EstatusCita Estatus { get; set; }
 }
 
-public class CitaService(IAppDbContext db)
+public class CitaService(IAppDbContext db, HorarioService horarios)
 {
     private static readonly EstatusCita[] EstatusQueLiberanHorario = [EstatusCita.Cancelada, EstatusCita.NoAsistio];
 
@@ -143,7 +144,10 @@ public class CitaService(IAppDbContext db)
 
         var ocupaHorario = !EstatusQueLiberanHorario.Contains(cita.Estatus);
         if (ocupaHorario)
+        {
+            await horarios.ValidarDentroDeHorarioAsync(req.EmpleadoId, req.FechaHoraInicio, duracion, ct);
             await ValidarHorarioLibreAsync(req.EmpleadoId, req.FechaHoraInicio, duracion, cita.Id, ct);
+        }
 
         cita.ProspectoId = req.ProspectoId;
         cita.EmpleadoId = req.EmpleadoId;

@@ -11,5 +11,10 @@ public class Cliente : EntidadBase
     public string? Telefono { get; set; }
     public string? Correo { get; set; }
     public string? Direccion { get; set; }
+
+    /// <summary>Lista de precios especial del cliente (opcional).</summary>
+    public int? ListaPreciosId { get; set; }
+    public ListaPrecios? ListaPrecios { get; set; }
+
     public bool Activo { get; set; } = true;
 }

@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from 'react'
-import { useClientes, useDesactivarCliente, useGuardarCliente } from '../api/hooks'
+import { useClientes, useDesactivarCliente, useGuardarCliente, useListasPrecios } from '../api/hooks'
 import type { Cliente } from '../api/tipos'
 import {
   BarraFiltros, Boton, BotonIcono, Buscador, Campo, Cargando, Celda, CeldaAcciones, Checkbox, Doble, Encabezado,
-  errorDeCampo, Fila, Input, Insignia, MensajeError, Modal, nulo, PieFormulario, Tabla, Tarjeta, Textarea,
+  errorDeCampo, Fila, Input, Insignia, MensajeError, Modal, nulo, PieFormulario, Select, Tabla, Tarjeta, Textarea,
   useConfirmar, Vacio,
 } from '../components/ui'
-import { SiPuede } from '../sesion/Sesion'
+import { SiPuede, useSesion } from '../sesion/Sesion'
 
 export default function Clientes() {
   const confirmar = useConfirmar()
@@ -62,8 +62,10 @@ function FormCliente({ cliente, onCerrar }: { cliente?: Cliente; onCerrar: () =>
   const [f, setF] = useState({
     razonSocial: cliente?.razonSocial ?? '', nombreComercial: cliente?.nombreComercial ?? '', rfc: cliente?.rfc ?? '',
     contactoPrincipal: cliente?.contactoPrincipal ?? '', telefono: cliente?.telefono ?? '', correo: cliente?.correo ?? '',
-    direccion: cliente?.direccion ?? '', activo: cliente?.activo ?? true,
+    direccion: cliente?.direccion ?? '', listaPreciosId: cliente?.listaPreciosId?.toString() ?? '', activo: cliente?.activo ?? true,
   })
+  const { puede } = useSesion()
+  const listas = useListasPrecios(false, puede('listas-precios.ver')).data ?? []
   const cambiar = (campo: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [campo]: e.target.value })
   const err = (c: string) => errorDeCampo(guardar.error, c)
 
@@ -74,7 +76,7 @@ function FormCliente({ cliente, onCerrar }: { cliente?: Cliente; onCerrar: () =>
       datos: {
         razonSocial: f.razonSocial, nombreComercial: nulo(f.nombreComercial), rfc: nulo(f.rfc.toUpperCase()),
         contactoPrincipal: nulo(f.contactoPrincipal), telefono: nulo(f.telefono), correo: nulo(f.correo),
-        direccion: nulo(f.direccion), activo: f.activo,
+        direccion: nulo(f.direccion), listaPreciosId: f.listaPreciosId ? Number(f.listaPreciosId) : null, activo: f.activo,
       },
     }, { onSuccess: onCerrar })
   }
@@ -93,6 +95,13 @@ function FormCliente({ cliente, onCerrar }: { cliente?: Cliente; onCerrar: () =>
         <Campo etiqueta="Teléfono" error={err('telefono')}><Input type="tel" value={f.telefono} onChange={cambiar('telefono')} /></Campo>
         <Campo etiqueta="Correo" className="sm:col-span-2" error={err('correo')}><Input type="email" value={f.correo} onChange={cambiar('correo')} /></Campo>
         <Campo etiqueta="Dirección" className="sm:col-span-2"><Textarea rows={2} value={f.direccion} onChange={cambiar('direccion')} /></Campo>
+        <Campo etiqueta="Lista de precios" className="sm:col-span-2" ayuda="Sin lista, se cotiza con los precios generales.">
+          <Select value={f.listaPreciosId} onChange={cambiar('listaPreciosId')}>
+            <option value="">Precios generales</option>
+            {cliente?.listaPreciosId && !listas.some((l) => l.id === cliente.listaPreciosId) && <option value={cliente.listaPreciosId}>{cliente.listaPrecios}</option>}
+            {listas.map((l) => <option key={l.id} value={l.id}>{l.nombre}</option>)}
+          </Select>
+        </Campo>
         {cliente && <Checkbox className="sm:col-span-2" etiqueta="Activo" checked={f.activo} onChange={(e) => setF({ ...f, activo: e.target.checked })} />}
         <div className="sm:col-span-2"><PieFormulario error={guardar.error} guardando={guardar.isPending} onCancelar={onCerrar} /></div>
       </form>

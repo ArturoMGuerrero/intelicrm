@@ -3,6 +3,7 @@ using InteliCRM.Application.Common;
 using InteliCRM.Application.Common.Exceptions;
 using InteliCRM.Application.Common.Interfaces;
 using InteliCRM.Application.Cotizaciones;
+using InteliCRM.Application.Inventario;
 using InteliCRM.Domain.Entities;
 using InteliCRM.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,7 @@ public record CargoDto(
     int? CondicionPagoId, string? CondicionPago,
     int? ProspectoId, int? ClienteId, string Destinatario,
     int? EmpleadoId, string? Empleado, int? CotizacionId, string? Cotizacion,
+    int? AlmacenId, string? Almacen,
     string? Notas, EstatusDocumento Estatus, string? MotivoCancelacion,
     decimal Subtotal, decimal Iva, decimal Total, decimal Pagado, decimal Saldo,
     EstadoSaldo Estado, int DiasVencido,
@@ -35,6 +37,7 @@ public record CargoDto(
         c.CondicionPagoId, c.CondicionPago?.Nombre,
         c.ProspectoId, c.ClienteId, CargoService.NombreDestinatario(c),
         c.EmpleadoId, c.Empleado?.NombreCompleto, c.CotizacionId, c.Cotizacion?.Folio,
+        c.AlmacenId, c.Almacen?.Nombre,
         c.Notas, c.Estatus, c.MotivoCancelacion,
         c.Subtotal, c.Iva, c.Total, c.Pagado, c.Saldo, c.Estado(hoy), c.DiasVencido(hoy),
         c.Partidas.OrderBy(p => p.Id)
@@ -45,6 +48,9 @@ public record CargoDto(
 
 public class CrearCargoRequest
 {
+    /// <summary>Almacén del que salen los productos. Sin almacén, el cargo no mueve inventario.</summary>
+    public int? AlmacenId { get; set; }
+
     public int? ProspectoId { get; set; }
     public int? ClienteId { get; set; }
     public int? EmpleadoId { get; set; }
@@ -67,6 +73,9 @@ public class CrearCargoRequest
 
 public class CargoDesdeCotizacionRequest
 {
+    /// <summary>Almacén del que salen los productos. Sin almacén, el cargo no mueve inventario.</summary>
+    public int? AlmacenId { get; set; }
+
     public DateOnly? Fecha { get; set; }
     public int? CondicionPagoId { get; set; }
 
@@ -86,7 +95,7 @@ public class FiltroCargos
 /// Cargos a clientes y prospectos (antes "Cargos a prospectos" / "Remisión") y su cobranza.
 /// Un cargo no se edita: si está mal se cancela (sin pagos) y se hace otro.
 /// </summary>
-public class CargoService(IAppDbContext db)
+public class CargoService(IAppDbContext db, InventarioService inventario)
 {
     public async Task<List<CargoResumenDto>> ListarAsync(FiltroCargos filtro, CancellationToken ct)
     {
@@ -140,6 +149,7 @@ public class CargoService(IAppDbContext db)
         cargo.ClienteId = req.ClienteId;
         cargo.EmpleadoId = req.EmpleadoId;
         cargo.CondicionPagoId = req.CondicionPagoId;
+        cargo.AlmacenId = req.AlmacenId;
         cargo.Notas = req.Notas?.Trim();
         cargo.FijarPlazo(req.Fecha ?? Saldos.Hoy, dias);
         foreach (var p in partidas)
@@ -177,6 +187,7 @@ public class CargoService(IAppDbContext db)
         cargo.ClienteId = cotizacion.ClienteId;
         cargo.EmpleadoId = cotizacion.EmpleadoId;
         cargo.CondicionPagoId = req.CondicionPagoId;
+        cargo.AlmacenId = req.AlmacenId;
         cargo.Notas = $"Generado de la cotización {cotizacion.Folio}.";
         cargo.FijarPlazo(req.Fecha ?? Saldos.Hoy, dias);
         foreach (var p in cotizacion.Partidas.OrderBy(p => p.Id))
@@ -194,6 +205,7 @@ public class CargoService(IAppDbContext db)
     {
         var cargo = await BuscarConPagosAsync(id, ct);
         Saldos.CancelarDocumento(cargo, cargo.Pagos, motivo);
+        await MoverInventarioAsync(cargo, cancelacion: true, ct);
         AnotarEnBitacora(cargo, $"Cargo {cargo.Folio} cancelado: {motivo.Trim()}");
         await db.SaveChangesAsync(ct);
         return await ObtenerAsync(id, ct);
@@ -207,8 +219,8 @@ public class CargoService(IAppDbContext db)
         cargo.RecalcularSaldo();
 
         AnotarEnBitacora(cargo, cargo.Saldo == 0
-            ? $"Pago de {Formato.Moneda(pago.Monto)} al cargo {cargo.Folio}. Cargo liquidado."
-            : $"Pago de {Formato.Moneda(pago.Monto)} al cargo {cargo.Folio}. Saldo: {Formato.Moneda(cargo.Saldo)}.");
+            ? $"Pago de {FormatoTexto.Moneda(pago.Monto)} al cargo {cargo.Folio}. Cargo liquidado."
+            : $"Pago de {FormatoTexto.Moneda(pago.Monto)} al cargo {cargo.Folio}. Saldo: {FormatoTexto.Moneda(cargo.Saldo)}.");
 
         await db.SaveChangesAsync(ct);
         return await ObtenerAsync(id, ct);
@@ -233,13 +245,13 @@ public class CargoService(IAppDbContext db)
     {
         var q = db.Cargos.Include(c => c.Prospecto).Include(c => c.Cliente).Include(c => c.Cotizacion);
         return conDetalle
-            ? q.Include(c => c.Empleado).Include(c => c.CondicionPago).Include(c => c.Partidas)
+            ? q.Include(c => c.Empleado).Include(c => c.CondicionPago).Include(c => c.Almacen).Include(c => c.Partidas)
                .Include(c => c.Pagos).ThenInclude(p => p.InstrumentoPago)
             : q;
     }
 
     private async Task<Cargo> BuscarConPagosAsync(int id, CancellationToken ct) =>
-        await db.Cargos.Include(c => c.Pagos).FirstOrDefaultAsync(c => c.Id == id, ct)
+        await db.Cargos.Include(c => c.Pagos).Include(c => c.Partidas).FirstOrDefaultAsync(c => c.Id == id, ct)
         ?? throw new NoEncontradoException("Cargo", id);
 
     private async Task<Cargo> NuevoCargoAsync(CancellationToken ct)
@@ -251,10 +263,35 @@ public class CargoService(IAppDbContext db)
 
     private async Task<CargoDto> GuardarNuevoAsync(Cargo cargo, CancellationToken ct)
     {
+        await MoverInventarioAsync(cargo, cancelacion: false, ct);
         db.Cargos.Add(cargo);
-        AnotarEnBitacora(cargo, $"Se generó el cargo {cargo.Folio} por {Formato.Moneda(cargo.Total)}.");
+        AnotarEnBitacora(cargo, $"Se generó el cargo {cargo.Folio} por {FormatoTexto.Moneda(cargo.Total)}.");
         await db.SaveChangesAsync(ct);
         return await ObtenerAsync(cargo.Id, ct);
+    }
+
+    /// <summary>
+    /// Si el cargo tiene almacén, saca del inventario los productos (no los servicios);
+    /// al cancelarlo los regresa. No guarda.
+    /// </summary>
+    private async Task MoverInventarioAsync(Cargo cargo, bool cancelacion, CancellationToken ct)
+    {
+        if (cargo.AlmacenId is not { } almacenId) return;
+        if (!cancelacion && !await db.Almacenes.AnyAsync(a => a.Id == almacenId && a.Activo, ct))
+            throw new NoEncontradoException("Almacén", almacenId);
+
+        var ids = cargo.Partidas.Where(p => p.ProductoId != null).Select(p => p.ProductoId!.Value).Distinct().ToList();
+        var conInventario = await db.Productos.AsNoTracking()
+            .Where(p => ids.Contains(p.Id) && p.Tipo == TipoProducto.Producto).Select(p => p.Id).ToListAsync(ct);
+
+        foreach (var grupo in cargo.Partidas.Where(p => p.ProductoId is { } id && conInventario.Contains(id)).GroupBy(p => p.ProductoId!.Value))
+        {
+            var cantidad = grupo.Sum(p => p.Cantidad);
+            if (cancelacion)
+                await inventario.ReintegrarAsync(grupo.Key, almacenId, cantidad, TipoMovimientoInventario.CancelacionVenta, cargo.Folio, null, ct);
+            else
+                await inventario.RegistrarSalidaAsync(grupo.Key, almacenId, cantidad, TipoMovimientoInventario.SalidaVenta, cargo.Folio, null, ct);
+        }
     }
 
     private void AnotarEnBitacora(Cargo cargo, string descripcion)

@@ -5,6 +5,9 @@ import type {
   BitacoraEntrada, Catalogo, Cita, Cliente, Cotizacion, CotizacionResumen, Dashboard,
   Almacen, Empleado, EstatusCita, EstatusCotizacion, EtapaProspecto, ModuloPermiso, Producto, Prospecto, Proveedor,
   Rol, Sucursal, Usuario, Cargo, CargoResumen, CuentaPorPagar, CuentaPorPagarResumen, FiltroEstadoSaldo, ResumenSaldos,
+  BloqueHorario, ConfiguracionEmpresa, EstatusOrdenCompra, Existencia, Faltante, ListaPrecios, ListaPreciosResumen,
+  MovimientoInventario, OrdenCompra, OrdenCompraResumen,
+  CanalMensaje, Destinatario, EstadoMensajeria, Formato, MensajeEnviado, Plantilla, Promocion, TicketSoporte, TipoPlantilla,
 } from './tipos'
 
 interface OpcionesMutacion<TVariables, TResultado> {
@@ -358,3 +361,147 @@ export const useRegistrarPagoProveedor = () =>
 export const useCancelarPagoProveedor = () =>
   useMutacion(({ id, pagoId }: { id: number; pagoId: number }) => api.post<CuentaPorPagar>(`/cuentas-pagar/${id}/pagos/${pagoId}/cancelar`, {}),
     { exito: 'Pago cancelado.' })
+
+// ---------- Mi empresa ----------
+export const useEmpresa = () =>
+  useQuery({ queryKey: ['empresa'], queryFn: () => api.get<ConfiguracionEmpresa>('/empresa'), staleTime: 5 * 60_000 })
+
+export const useGuardarEmpresa = () =>
+  useMutacion((datos: unknown) => api.put<ConfiguracionEmpresa>('/empresa', datos),
+    { exito: 'Datos de la empresa guardados.', errorEnToast: false })
+
+// ---------- Horarios ----------
+export const useHorario = (empleadoId: number) =>
+  useQuery({ queryKey: ['horarios', empleadoId], queryFn: () => api.get<BloqueHorario[]>(`/empleados/${empleadoId}/horario`) })
+
+export const useGuardarHorario = () =>
+  useMutacion(({ empleadoId, bloques }: { empleadoId: number; bloques: BloqueHorario[] }) =>
+    api.put<BloqueHorario[]>(`/empleados/${empleadoId}/horario`, { bloques }), { exito: 'Horario guardado.', errorEnToast: false })
+
+// ---------- Listas de precios ----------
+export const useListasPrecios = (incluirInactivas = false, habilitado = true) =>
+  useQuery({
+    queryKey: ['listas-precios', { incluirInactivas }],
+    queryFn: () => api.get<ListaPreciosResumen[]>(`/listas-precios${qs({ incluirInactivas })}`),
+    enabled: habilitado,
+  })
+
+export const useListaPrecios = (id: number | undefined) =>
+  useQuery({ queryKey: ['listas-precios', id], queryFn: () => api.get<ListaPrecios>(`/listas-precios/${id}`), enabled: !!id })
+
+export const useGuardarListaPrecios = () => useGuardar<ListaPrecios>('/listas-precios', 'Lista de precios')
+
+export const useDesactivarListaPrecios = () =>
+  useMutacion((id: number) => api.delete(`/listas-precios/${id}`), { exito: 'Lista dada de baja.' })
+
+/** Precios especiales del cliente (productoId → precio); vacío si no tiene lista. */
+export const usePreciosCliente = (clienteId: number | undefined) =>
+  useQuery({
+    queryKey: ['listas-precios', 'cliente', clienteId],
+    queryFn: () => api.get<Record<string, number>>(`/listas-precios/cliente/${clienteId}`),
+    enabled: !!clienteId,
+  })
+
+// ---------- Inventario ----------
+export interface FiltroExistencias { almacenId?: number; buscar?: string; soloBajoMinimo?: boolean }
+
+export const useExistencias = (filtro: FiltroExistencias = {}) =>
+  useQuery({
+    queryKey: ['inventario', 'existencias', filtro],
+    queryFn: () => api.get<Existencia[]>(`/inventario/existencias${qs({ ...filtro })}`),
+  })
+
+export interface FiltroKardex { productoId?: number; almacenId?: number; desde?: string; hasta?: string }
+
+export const useKardex = (filtro: FiltroKardex, habilitado = true) =>
+  useQuery({
+    queryKey: ['inventario', 'kardex', filtro],
+    queryFn: () => api.get<MovimientoInventario[]>(`/inventario/kardex${qs({ ...filtro })}`),
+    enabled: habilitado,
+  })
+
+export const useAjustarInventario = () =>
+  useMutacion((datos: unknown) => api.post<Existencia>('/inventario/ajustes', datos), { exito: 'Ajuste registrado.', errorEnToast: false })
+
+export const useTraspasar = () =>
+  useMutacion((datos: unknown) => api.post('/inventario/traspasos', datos), { exito: 'Traspaso registrado.', errorEnToast: false })
+
+// ---------- Compras ----------
+export interface FiltroCompras { buscar?: string; estatus?: EstatusOrdenCompra | ''; proveedorId?: number }
+
+export const useOrdenesCompra = (filtro: FiltroCompras = {}) =>
+  useQuery({ queryKey: ['compras', filtro], queryFn: () => api.get<OrdenCompraResumen[]>(`/compras${qs({ ...filtro })}`) })
+
+export const useOrdenCompra = (id: number | undefined) =>
+  useQuery({ queryKey: ['compras', id], queryFn: () => api.get<OrdenCompra>(`/compras/${id}`), enabled: !!id })
+
+export const useGuardarOrdenCompra = () =>
+  useMutacion(({ id, datos }: { id?: number; datos: unknown }) =>
+    id ? api.put<OrdenCompra>(`/compras/${id}`, datos) : api.post<OrdenCompra>('/compras', datos),
+  { exito: (o, v) => `Orden ${o.folio} ${v.id ? 'actualizada' : 'creada'}.`, errorEnToast: false })
+
+export const useCancelarOrdenCompra = () =>
+  useMutacion(({ id, motivo }: { id: number; motivo: string }) => api.post<OrdenCompra>(`/compras/${id}/cancelar`, { motivo }),
+    { exito: (o) => `Orden ${o.folio} cancelada.`, errorEnToast: false })
+
+export const useRecibirCompra = () =>
+  useMutacion(({ id, datos }: { id: number; datos: unknown }) => api.post<OrdenCompra>(`/compras/${id}/recepciones`, datos),
+    { exito: 'Mercancía recibida: entró al almacén y se generó la cuenta por pagar.', errorEnToast: false })
+
+export const useFaltantes = () =>
+  useQuery({ queryKey: ['compras', 'faltantes'], queryFn: () => api.get<Faltante[]>('/compras/faltantes') })
+
+export const usePedirFaltantes = () =>
+  useMutacion((datos: unknown) => api.post<OrdenCompraResumen[]>('/compras/faltantes', datos),
+    { exito: (o) => `Se generaron ${o.length} órdenes de compra: ${o.map((x) => x.folio).join(', ')}.`, errorEnToast: false })
+
+// ---------- Mensajes ----------
+export const useEstadoMensajeria = () =>
+  useQuery({ queryKey: ['mensajes', 'estado'], queryFn: () => api.get<EstadoMensajeria>('/mensajes/estado'), staleTime: 5 * 60_000 })
+
+export const usePlantillas = () =>
+  useQuery({ queryKey: ['mensajes', 'plantillas'], queryFn: () => api.get<Plantilla[]>('/mensajes/plantillas') })
+
+export const useGuardarPlantilla = () =>
+  useMutacion((datos: unknown) => api.put<Plantilla>('/mensajes/plantillas', datos), { exito: 'Plantilla guardada.', errorEnToast: false })
+
+export const useHistorialMensajes = (filtro: { canal?: CanalMensaje | ''; citaId?: number; promocionId?: number } = {}) =>
+  useQuery({
+    queryKey: ['mensajes', 'historial', filtro],
+    queryFn: () => api.get<MensajeEnviado[]>(`/mensajes/historial${qs({ ...filtro })}`),
+  })
+
+const textoEstatus = (m: MensajeEnviado) =>
+  m.estatus === 'Simulado' ? 'Mensaje registrado (simulado: no hay proveedor configurado).' : `Mensaje enviado a ${m.destinatario}.`
+
+export const useEnviarMensajeCita = () =>
+  useMutacion(({ citaId, canal, tipo }: { citaId: number; canal: CanalMensaje; tipo: TipoPlantilla }) =>
+    api.post<MensajeEnviado>(`/citas/${citaId}/mensajes`, { canal, tipo }), { exito: textoEstatus })
+
+// ---------- Promociones ----------
+export const usePromociones = () =>
+  useQuery({ queryKey: ['promociones'], queryFn: () => api.get<Promocion[]>('/promociones') })
+
+export const useDestinatarios = (habilitado = true) =>
+  useQuery({ queryKey: ['promociones', 'destinatarios'], queryFn: () => api.get<Destinatario[]>('/promociones/destinatarios'), enabled: habilitado })
+
+export const useEnviarPromocion = () =>
+  useMutacion((datos: unknown) => api.post<Promocion>('/promociones', datos),
+    { exito: (p) => `Promoción enviada: ${p.enviados} de ${p.destinatarios}${p.fallidos ? ` (${p.fallidos} con error)` : ''}.`, errorEnToast: false })
+
+// ---------- Formatos ----------
+export const useFormatos = () =>
+  useQuery({ queryKey: ['formatos'], queryFn: () => api.get<Formato[]>('/formatos') })
+
+export const useSubirFormato = () =>
+  useMutacion((datos: FormData) => api.post<Formato>('/formatos', datos), { exito: 'Formato agregado.', errorEnToast: false })
+
+export const useEliminarFormato = () =>
+  useMutacion((id: number) => api.delete(`/formatos/${id}`), { exito: 'Formato eliminado.' })
+
+// ---------- Soporte ----------
+export const useTickets = () =>
+  useQuery({ queryKey: ['soporte'], queryFn: () => api.get<TicketSoporte[]>('/soporte') })
+
+export const useCrearTicket = () =>
+  useMutacion((datos: unknown) => api.post<TicketSoporte>('/soporte', datos), { exito: 'Mensaje enviado a soporte.', errorEnToast: false })

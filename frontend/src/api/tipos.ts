@@ -40,6 +40,8 @@ export interface Cliente {
   telefono: string | null
   correo: string | null
   direccion: string | null
+  listaPreciosId: number | null
+  listaPrecios: string | null
   activo: boolean
 }
 
@@ -50,6 +52,10 @@ export interface Producto {
   descripcion: string | null
   tipo: TipoProducto
   precio: number
+  costo: number
+  stockMinimo: number | null
+  proveedorId: number | null
+  proveedor: string | null
   activo: boolean
 }
 
@@ -290,6 +296,8 @@ export interface CargoResumen extends DocumentoSaldo {
 }
 
 export interface Cargo extends CargoResumen {
+  almacenId: number | null
+  almacen: string | null
   condicionPagoId: number | null
   condicionPago: string | null
   empleadoId: number | null
@@ -312,6 +320,8 @@ export interface CuentaPorPagarResumen extends DocumentoSaldo {
 }
 
 export interface CuentaPorPagar extends CuentaPorPagarResumen {
+  ordenCompraId: number | null
+  ordenCompra: string | null
   condicionPagoId: number | null
   condicionPago: string | null
   notas: string | null
@@ -333,4 +343,229 @@ export interface ResumenSaldos {
   vencido31a60: number
   vencido61a90: number
   vencidoMas90: number
+}
+
+// ---------- Mi empresa, horarios y listas de precios ----------
+export interface CuentaBancaria {
+  id?: number
+  banco: string
+  numeroCuenta: string | null
+  clabe: string | null
+  descripcion: string | null
+}
+
+export interface ConfiguracionEmpresa {
+  razonSocial: string
+  nombreComercial: string | null
+  rfc: string | null
+  regimenFiscal: string | null
+  codigoPostal: string | null
+  direccion: string | null
+  telefono: string | null
+  correo: string | null
+  sitioWeb: string | null
+  logo: string | null
+  serieFactura: string | null
+  pieDocumentos: string | null
+  cuentasBancarias: CuentaBancaria[]
+}
+
+export type DiaSemana = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'
+
+export interface BloqueHorario {
+  dia: DiaSemana
+  horaInicio: string
+  horaFin: string
+}
+
+export interface ListaPreciosResumen {
+  id: number
+  nombre: string
+  descripcion: string | null
+  activo: boolean
+  productos: number
+  clientes: number
+}
+
+export interface PrecioLista {
+  productoId: number
+  codigo: string
+  producto: string
+  precioGeneral: number
+  precio: number
+}
+
+export interface ListaPrecios {
+  id: number
+  nombre: string
+  descripcion: string | null
+  activo: boolean
+  precios: PrecioLista[]
+}
+
+// ---------- Inventario y compras ----------
+export type TipoMovimientoInventario =
+  | 'EntradaCompra' | 'SalidaVenta' | 'AjusteEntrada' | 'AjusteSalida' | 'TraspasoEntrada' | 'TraspasoSalida' | 'CancelacionVenta'
+export type EstatusOrdenCompra = 'Pedida' | 'RecibidaParcial' | 'Recibida' | 'Cancelada'
+
+export interface Existencia {
+  productoId: number
+  codigo: string
+  producto: string
+  almacenId: number | null
+  almacen: string | null
+  cantidad: number
+  stockMinimo: number | null
+  costoPromedio: number
+  valor: number
+  bajoMinimo: boolean
+}
+
+export interface MovimientoInventario {
+  id: number
+  fecha: string
+  productoId: number
+  producto: string
+  almacenId: number
+  almacen: string
+  tipo: TipoMovimientoInventario
+  cantidad: number
+  existenciaAnterior: number
+  existenciaNueva: number
+  costoUnitario: number
+  referencia: string | null
+  notas: string | null
+}
+
+export interface OrdenCompraResumen {
+  id: number
+  folio: string
+  fecha: string
+  fechaEntregaEstimada: string | null
+  proveedorId: number
+  proveedor: string
+  almacen: string
+  estatus: EstatusOrdenCompra
+  total: number
+  porcentajeRecibido: number
+}
+
+export interface PartidaCompra {
+  id: number
+  productoId: number
+  codigo: string
+  descripcion: string
+  cantidad: number
+  cantidadRecibida: number
+  pendiente: number
+  costoUnitario: number
+  importe: number
+}
+
+export interface OrdenCompra {
+  id: number
+  folio: string
+  fecha: string
+  fechaEntregaEstimada: string | null
+  proveedorId: number
+  proveedor: string
+  almacenId: number
+  almacen: string
+  condicionPagoId: number | null
+  condicionPago: string | null
+  diasCredito: number
+  notas: string | null
+  estatus: EstatusOrdenCompra
+  motivoCancelacion: string | null
+  subtotal: number
+  iva: number
+  total: number
+  partidas: PartidaCompra[]
+  cuentasPorPagar: { id: number; folio: string; folioProveedor: string | null; fecha: string; total: number; saldo: number }[]
+}
+
+export interface Faltante {
+  productoId: number
+  codigo: string
+  producto: string
+  existencia: number
+  porRecibir: number
+  stockMinimo: number
+  sugerido: number
+  costo: number
+  proveedorId: number | null
+  proveedor: string | null
+}
+
+// ---------- Mensajes, promociones, formatos y soporte ----------
+export type CanalMensaje = 'Correo' | 'Sms'
+export type TipoPlantilla = 'ConfirmacionCita' | 'RecordatorioCita'
+export type EstatusMensaje = 'Enviado' | 'Simulado' | 'Error'
+
+export interface EstadoMensajeria {
+  correoConfigurado: boolean
+  smsConfigurado: boolean
+  variables: string[]
+}
+
+export interface Plantilla {
+  tipo: TipoPlantilla
+  canal: CanalMensaje
+  asunto: string | null
+  cuerpo: string
+  personalizada: boolean
+}
+
+export interface MensajeEnviado {
+  id: number
+  fecha: string
+  canal: CanalMensaje
+  destinatario: string
+  nombreDestinatario: string | null
+  asunto: string | null
+  cuerpo: string
+  estatus: EstatusMensaje
+  error: string | null
+  origen: string
+}
+
+export interface Promocion {
+  id: number
+  nombre: string
+  canal: CanalMensaje
+  asunto: string | null
+  mensaje: string
+  fechaEnvio: string
+  destinatarios: number
+  enviados: number
+  fallidos: number
+}
+
+export interface Destinatario {
+  tipo: 'Prospecto' | 'Cliente'
+  id: number
+  nombre: string
+  empresa: string | null
+  celular: string | null
+  correo: string | null
+}
+
+export interface Formato {
+  id: number
+  nombre: string
+  categoria: string | null
+  nombreArchivo: string
+  tipoContenido: string
+  tamano: number
+  fechaCreacion: string
+}
+
+export interface TicketSoporte {
+  id: number
+  fecha: string
+  asunto: string
+  mensaje: string
+  nombreContacto: string
+  correoContacto: string
+  estatusEnvio: EstatusMensaje
 }

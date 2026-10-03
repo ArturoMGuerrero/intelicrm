@@ -8,11 +8,12 @@ namespace InteliCRM.Application.Clientes;
 
 public record ClienteDto(
     int Id, string RazonSocial, string? NombreComercial, string? Rfc,
-    string? ContactoPrincipal, string? Telefono, string? Correo, string? Direccion, bool Activo)
+    string? ContactoPrincipal, string? Telefono, string? Correo, string? Direccion,
+    int? ListaPreciosId, string? ListaPrecios, bool Activo)
 {
     public static ClienteDto Desde(Cliente c) => new(
         c.Id, c.RazonSocial, c.NombreComercial, c.Rfc, c.ContactoPrincipal,
-        c.Telefono, c.Correo, c.Direccion, c.Activo);
+        c.Telefono, c.Correo, c.Direccion, c.ListaPreciosId, c.ListaPrecios?.Nombre, c.Activo);
 }
 
 public class GuardarClienteRequest
@@ -38,6 +39,8 @@ public class GuardarClienteRequest
     [StringLength(500)]
     public string? Direccion { get; set; }
 
+    public int? ListaPreciosId { get; set; }
+
     public bool Activo { get; set; } = true;
 }
 
@@ -45,7 +48,7 @@ public class ClienteService(IAppDbContext db)
 {
     public async Task<List<ClienteDto>> ListarAsync(string? buscar, bool incluirInactivos, CancellationToken ct)
     {
-        var query = db.Clientes.AsNoTracking().Where(c => incluirInactivos || c.Activo);
+        var query = db.Clientes.AsNoTracking().Include(c => c.ListaPrecios).Where(c => incluirInactivos || c.Activo);
 
         if (!string.IsNullOrWhiteSpace(buscar))
         {
@@ -62,25 +65,26 @@ public class ClienteService(IAppDbContext db)
     }
 
     public async Task<ClienteDto> ObtenerAsync(int id, CancellationToken ct) =>
-        ClienteDto.Desde(await BuscarAsync(id, ct));
+        ClienteDto.Desde(await db.Clientes.AsNoTracking().Include(c => c.ListaPrecios).FirstOrDefaultAsync(c => c.Id == id, ct)
+                         ?? throw new NoEncontradoException("Cliente", id));
 
     public async Task<ClienteDto> CrearAsync(GuardarClienteRequest req, CancellationToken ct)
     {
-        await ValidarRfcUnicoAsync(req.Rfc, null, ct);
+        await ValidarAsync(req, null, ct);
         var cliente = new Cliente();
         Aplicar(cliente, req);
         db.Clientes.Add(cliente);
         await db.SaveChangesAsync(ct);
-        return ClienteDto.Desde(cliente);
+        return await ObtenerAsync(cliente.Id, ct);
     }
 
     public async Task<ClienteDto> ActualizarAsync(int id, GuardarClienteRequest req, CancellationToken ct)
     {
         var cliente = await BuscarAsync(id, ct);
-        await ValidarRfcUnicoAsync(req.Rfc, id, ct);
+        await ValidarAsync(req, id, ct);
         Aplicar(cliente, req);
         await db.SaveChangesAsync(ct);
-        return ClienteDto.Desde(cliente);
+        return await ObtenerAsync(cliente.Id, ct);
     }
 
     public async Task DesactivarAsync(int id, CancellationToken ct)
@@ -94,10 +98,12 @@ public class ClienteService(IAppDbContext db)
         await db.Clientes.FirstOrDefaultAsync(c => c.Id == id, ct)
         ?? throw new NoEncontradoException("Cliente", id);
 
-    private async Task ValidarRfcUnicoAsync(string? rfc, int? excluirId, CancellationToken ct)
+    private async Task ValidarAsync(GuardarClienteRequest req, int? excluirId, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(rfc)) return;
-        var normalizado = rfc.Trim().ToUpper();
+        if (req.ListaPreciosId is { } listaId && !await db.ListasPrecios.AnyAsync(l => l.Id == listaId, ct))
+            throw new NoEncontradoException("Lista de precios", listaId);
+        if (string.IsNullOrWhiteSpace(req.Rfc)) return;
+        var normalizado = req.Rfc.Trim().ToUpper();
         if (await db.Clientes.AnyAsync(c => c.Rfc == normalizado && c.Id != excluirId, ct))
             throw new ReglaNegocioException($"Ya existe un cliente con el RFC {normalizado}.");
     }
@@ -111,6 +117,7 @@ public class ClienteService(IAppDbContext db)
         c.Telefono = req.Telefono?.Trim();
         c.Correo = req.Correo?.Trim();
         c.Direccion = req.Direccion?.Trim();
+        c.ListaPreciosId = req.ListaPreciosId;
         c.Activo = req.Activo;
     }
 }

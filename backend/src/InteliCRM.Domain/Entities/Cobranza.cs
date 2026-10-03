@@ -99,6 +99,10 @@ public class Cargo : DocumentoConSaldo
     public int? EmpleadoId { get; set; }
     public Empleado? Empleado { get; set; }
 
+    /// <summary>Almacén del que sale la mercancía. Sin almacén, el cargo no mueve inventario.</summary>
+    public int? AlmacenId { get; set; }
+    public Almacen? Almacen { get; set; }
+
     /// <summary>Cotización de la que se generó (opcional).</summary>
     public int? CotizacionId { get; set; }
     public Cotizacion? Cotizacion { get; set; }
@@ -142,6 +146,10 @@ public class CuentaPorPagar : DocumentoConSaldo
 {
     public int ProveedorId { get; set; }
     public Proveedor? Proveedor { get; set; }
+
+    /// <summary>Orden de compra cuya recepción generó esta cuenta (opcional).</summary>
+    public int? OrdenCompraId { get; set; }
+    public OrdenCompra? OrdenCompra { get; set; }
 
     /// <summary>Folio de la factura o documento del proveedor.</summary>
     public string? FolioProveedor { get; set; }

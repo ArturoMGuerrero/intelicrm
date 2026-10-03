@@ -166,6 +166,9 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("AlmacenId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("ClienteId")
                         .HasColumnType("INTEGER");
 
@@ -243,6 +246,8 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AlmacenId");
 
                     b.HasIndex("ClienteId");
 
@@ -413,6 +418,9 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("FechaModificacion")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("ListaPreciosId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("ModificadoPorId")
                         .HasColumnType("INTEGER");
 
@@ -436,6 +444,8 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CuentaId");
+
+                    b.HasIndex("ListaPreciosId");
 
                     b.HasIndex("CuentaId", "Rfc")
                         .IsUnique()
@@ -488,6 +498,83 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("CondicionesPago", (string)null);
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.ConfiguracionEmpresa", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CodigoPostal")
+                        .HasMaxLength(5)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Correo")
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Direccion")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Logo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NombreComercial")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PieDocumentos")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RazonSocial")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RegimenFiscal")
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Rfc")
+                        .HasMaxLength(13)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SerieFactura")
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SitioWeb")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Telefono")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CuentaId")
+                        .IsUnique();
+
+                    b.ToTable("ConfiguracionEmpresa", (string)null);
                 });
 
             modelBuilder.Entity("InteliCRM.Domain.Entities.Cotizacion", b =>
@@ -651,6 +738,56 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.ToTable("Cuentas", (string)null);
                 });
 
+            modelBuilder.Entity("InteliCRM.Domain.Entities.CuentaBancariaEmpresa", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Banco")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Clabe")
+                        .HasMaxLength(18)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ConfiguracionEmpresaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NumeroCuenta")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConfiguracionEmpresaId");
+
+                    b.HasIndex("CuentaId");
+
+                    b.ToTable("CuentasBancariasEmpresa", (string)null);
+                });
+
             modelBuilder.Entity("InteliCRM.Domain.Entities.CuentaPorPagar", b =>
                 {
                     b.Property<int>("Id")
@@ -718,6 +855,9 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("OrdenCompraId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("ProveedorId")
                         .HasColumnType("INTEGER");
 
@@ -740,6 +880,8 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.HasIndex("CuentaId");
 
                     b.HasIndex("FechaVencimiento");
+
+                    b.HasIndex("OrdenCompraId");
 
                     b.HasIndex("ProveedorId");
 
@@ -859,6 +1001,149 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.ToTable("Empleados", (string)null);
                 });
 
+            modelBuilder.Entity("InteliCRM.Domain.Entities.Existencia", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AlmacenId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Cantidad")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("CostoPromedio")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlmacenId");
+
+                    b.HasIndex("CuentaId");
+
+                    b.HasIndex("ProductoId", "AlmacenId")
+                        .IsUnique();
+
+                    b.ToTable("Existencias", (string)null);
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.Formato", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Categoria")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("Contenido")
+                        .IsRequired()
+                        .HasColumnType("BLOB");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NombreArchivo")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Tamano")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TipoContenido")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CuentaId");
+
+                    b.ToTable("Formatos", (string)null);
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.HorarioEmpleado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Dia")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("EmpleadoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeOnly>("HoraFin")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeOnly>("HoraInicio")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CuentaId");
+
+                    b.HasIndex("EmpleadoId", "Dia");
+
+                    b.ToTable("HorariosEmpleado", (string)null);
+                });
+
             modelBuilder.Entity("InteliCRM.Domain.Entities.InstrumentoPago", b =>
                 {
                     b.Property<int>("Id")
@@ -900,6 +1185,345 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("InstrumentosPago", (string)null);
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.ListaPrecios", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CuentaId");
+
+                    b.HasIndex("CuentaId", "Nombre")
+                        .IsUnique();
+
+                    b.ToTable("ListasPrecios", (string)null);
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.MensajeEnviado", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Asunto")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Canal")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CitaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Cuerpo")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Destinatario")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Estatus")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NombreDestinatario")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Origen")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PromocionId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CitaId");
+
+                    b.HasIndex("CuentaId");
+
+                    b.HasIndex("Fecha");
+
+                    b.HasIndex("PromocionId");
+
+                    b.ToTable("MensajesEnviados", (string)null);
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.MovimientoInventario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AlmacenId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Cantidad")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("CostoUnitario")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("ExistenciaAnterior")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("ExistenciaNueva")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Referencia")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlmacenId");
+
+                    b.HasIndex("CuentaId");
+
+                    b.HasIndex("ProductoId", "AlmacenId", "Fecha");
+
+                    b.ToTable("MovimientosInventario", (string)null);
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.OrdenCompra", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AlmacenId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CondicionPagoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Consecutivo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DiasCredito")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Estatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly?>("FechaEntregaEstimada")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Folio")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Iva")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("MotivoCancelacion")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProveedorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlmacenId");
+
+                    b.HasIndex("CondicionPagoId");
+
+                    b.HasIndex("CuentaId");
+
+                    b.HasIndex("ProveedorId");
+
+                    b.HasIndex("CuentaId", "Consecutivo")
+                        .IsUnique();
+
+                    b.HasIndex("CuentaId", "Folio")
+                        .IsUnique();
+
+                    b.ToTable("OrdenesCompra", (string)null);
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.OrdenCompraPartida", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Cantidad")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("CantidadRecibida")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("CostoUnitario")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrdenCompraId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CuentaId");
+
+                    b.HasIndex("OrdenCompraId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.ToTable("OrdenCompraPartidas", (string)null);
                 });
 
             modelBuilder.Entity("InteliCRM.Domain.Entities.PagoCargo", b =>
@@ -1024,6 +1648,99 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.ToTable("PagosProveedor", (string)null);
                 });
 
+            modelBuilder.Entity("InteliCRM.Domain.Entities.PlantillaMensaje", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Asunto")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Canal")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Cuerpo")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CuentaId");
+
+                    b.HasIndex("CuentaId", "Tipo", "Canal")
+                        .IsUnique();
+
+                    b.ToTable("PlantillasMensaje", (string)null);
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.PrecioLista", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ListaPreciosId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Precio")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ProductoId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CuentaId");
+
+                    b.HasIndex("ProductoId");
+
+                    b.HasIndex("ListaPreciosId", "ProductoId")
+                        .IsUnique();
+
+                    b.ToTable("PreciosLista", (string)null);
+                });
+
             modelBuilder.Entity("InteliCRM.Domain.Entities.Producto", b =>
                 {
                     b.Property<int>("Id")
@@ -1036,6 +1753,10 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.Property<string>("Codigo")
                         .IsRequired()
                         .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Costo")
+                        .HasPrecision(18, 4)
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("CreadoPorId")
@@ -1066,6 +1787,13 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("ProveedorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("StockMinimo")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Tipo")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1075,10 +1803,71 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CuentaId");
 
+                    b.HasIndex("ProveedorId");
+
                     b.HasIndex("CuentaId", "Codigo")
                         .IsUnique();
 
                     b.ToTable("Productos", (string)null);
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.Promocion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Asunto")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Canal")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Destinatarios")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Enviados")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Fallidos")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaEnvio")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CuentaId");
+
+                    b.ToTable("Promociones", (string)null);
                 });
 
             modelBuilder.Entity("InteliCRM.Domain.Entities.Prospecto", b =>
@@ -1421,6 +2210,59 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.ToTable("Sucursales", (string)null);
                 });
 
+            modelBuilder.Entity("InteliCRM.Domain.Entities.TicketSoporte", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Asunto")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CorreoContacto")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("EstatusEnvio")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NombreContacto")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CuentaId");
+
+                    b.ToTable("TicketsSoporte", (string)null);
+                });
+
             modelBuilder.Entity("InteliCRM.Domain.Entities.TipoContacto", b =>
                 {
                     b.Property<int>("Id")
@@ -1722,6 +2564,11 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("InteliCRM.Domain.Entities.Cargo", b =>
                 {
+                    b.HasOne("InteliCRM.Domain.Entities.Almacen", "Almacen")
+                        .WithMany()
+                        .HasForeignKey("AlmacenId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("InteliCRM.Domain.Entities.Cliente", "Cliente")
                         .WithMany()
                         .HasForeignKey("ClienteId")
@@ -1752,6 +2599,8 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("ProspectoId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Almacen");
 
                     b.Navigation("Cliente");
 
@@ -1825,9 +2674,25 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CuentaId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.ListaPrecios", "ListaPrecios")
+                        .WithMany()
+                        .HasForeignKey("ListaPreciosId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ListaPrecios");
                 });
 
             modelBuilder.Entity("InteliCRM.Domain.Entities.CondicionPago", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.ConfiguracionEmpresa", b =>
                 {
                     b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
                         .WithMany()
@@ -1888,6 +2753,21 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.Navigation("Producto");
                 });
 
+            modelBuilder.Entity("InteliCRM.Domain.Entities.CuentaBancariaEmpresa", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.ConfiguracionEmpresa", null)
+                        .WithMany("CuentasBancarias")
+                        .HasForeignKey("ConfiguracionEmpresaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InteliCRM.Domain.Entities.CuentaPorPagar", b =>
                 {
                     b.HasOne("InteliCRM.Domain.Entities.CondicionPago", "CondicionPago")
@@ -1901,6 +2781,11 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("InteliCRM.Domain.Entities.OrdenCompra", "OrdenCompra")
+                        .WithMany()
+                        .HasForeignKey("OrdenCompraId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("InteliCRM.Domain.Entities.Proveedor", "Proveedor")
                         .WithMany()
                         .HasForeignKey("ProveedorId")
@@ -1908,6 +2793,8 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("CondicionPago");
+
+                    b.Navigation("OrdenCompra");
 
                     b.Navigation("Proveedor");
                 });
@@ -1944,6 +2831,57 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.Navigation("UnidadNegocio");
                 });
 
+            modelBuilder.Entity("InteliCRM.Domain.Entities.Existencia", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Almacen", "Almacen")
+                        .WithMany()
+                        .HasForeignKey("AlmacenId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Almacen");
+
+                    b.Navigation("Producto");
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.Formato", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.HorarioEmpleado", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.Empleado", "Empleado")
+                        .WithMany()
+                        .HasForeignKey("EmpleadoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Empleado");
+                });
+
             modelBuilder.Entity("InteliCRM.Domain.Entities.InstrumentoPago", b =>
                 {
                     b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
@@ -1951,6 +2889,104 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CuentaId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.ListaPrecios", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.MensajeEnviado", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.MovimientoInventario", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Almacen", "Almacen")
+                        .WithMany()
+                        .HasForeignKey("AlmacenId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Almacen");
+
+                    b.Navigation("Producto");
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.OrdenCompra", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Almacen", "Almacen")
+                        .WithMany()
+                        .HasForeignKey("AlmacenId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.CondicionPago", "CondicionPago")
+                        .WithMany()
+                        .HasForeignKey("CondicionPagoId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.Proveedor", "Proveedor")
+                        .WithMany()
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Almacen");
+
+                    b.Navigation("CondicionPago");
+
+                    b.Navigation("Proveedor");
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.OrdenCompraPartida", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.OrdenCompra", null)
+                        .WithMany("Partidas")
+                        .HasForeignKey("OrdenCompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
                 });
 
             modelBuilder.Entity("InteliCRM.Domain.Entities.PagoCargo", b =>
@@ -1997,7 +3033,55 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.Navigation("InstrumentoPago");
                 });
 
+            modelBuilder.Entity("InteliCRM.Domain.Entities.PlantillaMensaje", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.PrecioLista", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.ListaPrecios", null)
+                        .WithMany("Precios")
+                        .HasForeignKey("ListaPreciosId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("ProductoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Producto");
+                });
+
             modelBuilder.Entity("InteliCRM.Domain.Entities.Producto", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("InteliCRM.Domain.Entities.Proveedor", "Proveedor")
+                        .WithMany()
+                        .HasForeignKey("ProveedorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Proveedor");
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.Promocion", b =>
                 {
                     b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
                         .WithMany()
@@ -2093,6 +3177,15 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InteliCRM.Domain.Entities.TicketSoporte", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InteliCRM.Domain.Entities.TipoContacto", b =>
                 {
                     b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
@@ -2171,6 +3264,11 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.Navigation("Partidas");
                 });
 
+            modelBuilder.Entity("InteliCRM.Domain.Entities.ConfiguracionEmpresa", b =>
+                {
+                    b.Navigation("CuentasBancarias");
+                });
+
             modelBuilder.Entity("InteliCRM.Domain.Entities.Cotizacion", b =>
                 {
                     b.Navigation("Partidas");
@@ -2179,6 +3277,16 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("InteliCRM.Domain.Entities.CuentaPorPagar", b =>
                 {
                     b.Navigation("Pagos");
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.ListaPrecios", b =>
+                {
+                    b.Navigation("Precios");
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.OrdenCompra", b =>
+                {
+                    b.Navigation("Partidas");
                 });
 
             modelBuilder.Entity("InteliCRM.Domain.Entities.Prospecto", b =>

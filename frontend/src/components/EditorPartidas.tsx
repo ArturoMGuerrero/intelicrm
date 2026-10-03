@@ -50,10 +50,12 @@ export const partidasParaApi = (partidas: PartidaForm[]) =>
       descuentoPorcentaje: Number(p.descuentoPorcentaje) || 0,
     }))
 
-export function EditorPartidas({ partidas, setPartidas, productos }: {
+export function EditorPartidas({ partidas, setPartidas, productos, preciosEspeciales }: {
   partidas: PartidaForm[]
   setPartidas: Dispatch<SetStateAction<PartidaForm[]>>
   productos: Producto[] | undefined
+  /** Precios de la lista del cliente (productoId → precio); tienen prioridad sobre el precio general. */
+  preciosEspeciales?: Record<string, number>
 }) {
   const cambiarPartida = (clave: number, cambios: Partial<PartidaForm>) =>
     setPartidas((ps) => ps.map((p) => (p.clave === clave ? { ...p, ...cambios } : p)))
@@ -61,7 +63,7 @@ export function EditorPartidas({ partidas, setPartidas, productos }: {
   const elegirProducto = (clave: number, productoId: string) => {
     const producto = productos?.find((x) => x.id === Number(productoId))
     cambiarPartida(clave, producto
-      ? { productoId, descripcion: producto.nombre, precioUnitario: producto.precio.toString() }
+      ? { productoId, descripcion: producto.nombre, precioUnitario: (preciosEspeciales?.[productoId] ?? producto.precio).toString() }
       : { productoId })
   }
 
@@ -81,7 +83,9 @@ export function EditorPartidas({ partidas, setPartidas, productos }: {
             <Celda>
               <Select value={p.productoId} onChange={(e) => elegirProducto(p.clave, e.target.value)} aria-label="Producto">
                 <option value="">Libre…</option>
-                {productos?.map((x) => <option key={x.id} value={x.id}>{x.codigo} · {x.nombre}</option>)}
+                {productos?.map((x) => (
+                  <option key={x.id} value={x.id}>{x.codigo} · {x.nombre}{preciosEspeciales?.[x.id] != null ? ' ★' : ''}</option>
+                ))}
               </Select>
             </Celda>
             <Celda>

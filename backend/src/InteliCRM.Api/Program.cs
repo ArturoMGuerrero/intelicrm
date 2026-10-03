@@ -27,6 +27,10 @@ builder.Services.AddInfrastructure(
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUsuarioActual, UsuarioActual>();
 
+// Envío de correos y SMS (sección "Mensajeria"; sin configuración, el envío es simulado).
+builder.Services.Configure<OpcionesMensajeria>(builder.Configuration.GetSection(OpcionesMensajeria.Seccion));
+builder.Services.AddHttpClient<IEnviadorMensajes, EnviadorMensajes>(c => c.Timeout = TimeSpan.FromSeconds(20));
+
 // ---------- Autenticación JWT ----------
 var jwt = builder.Configuration.GetSection(OpcionesJwt.Seccion).Get<OpcionesJwt>() ?? new OpcionesJwt();
 if (jwt.Clave.Length < 32 && builder.Environment.IsDevelopment())

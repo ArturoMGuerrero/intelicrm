@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace InteliCRM.Application.Common;
 
-public static class Formato
+public static class FormatoTexto
 {
     private static readonly CultureInfo Mx = CultureInfo.GetCultureInfo("es-MX");
 

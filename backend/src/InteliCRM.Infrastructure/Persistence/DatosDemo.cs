@@ -112,7 +112,42 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
 
         var matriz = new Sucursal { Nombre = "Matriz", Telefono = "5550000000", Direccion = "Av. Insurgentes Sur 1000, CDMX", CodigoPostal = "03100" };
         db.Sucursales.Add(matriz);
-        db.Almacenes.Add(new Almacen { Nombre = "Almacén general", Ubicacion = "Planta baja", Sucursal = matriz });
+        var almacenGeneral = new Almacen { Nombre = "Almacén general", Ubicacion = "Planta baja", Sucursal = matriz };
+        db.Almacenes.Add(almacenGeneral);
+
+        // ---------- Mi empresa, horarios y listas de precios ----------
+        db.ConfiguracionesEmpresa.Add(new ConfiguracionEmpresa
+        {
+            RazonSocial = "Comercializadora Demo S.A. de C.V.", NombreComercial = "Comercializadora Demo", Rfc = "CDE010101AA1",
+            RegimenFiscal = "601", CodigoPostal = "03100", Direccion = "Av. Insurgentes Sur 1000, Col. Del Valle, CDMX",
+            Telefono = "5550000000", Correo = "contacto@demo.ejemplo.com", SitioWeb = "www.demo.ejemplo.com", SerieFactura = "A",
+            PieDocumentos = "Precios en pesos mexicanos. Vigencia según se indica en el documento.",
+            CuentasBancarias = [new CuentaBancariaEmpresa { Banco = "BBVA", NumeroCuenta = "0123456789", Clabe = "012180001122334455", Descripcion = "Cuenta principal" }],
+        });
+        foreach (var empleado in new[] { ana, carlos, sofia })
+            foreach (var dia in new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday })
+                db.HorariosEmpleado.Add(new HorarioEmpleado { Empleado = empleado, Dia = dia, HoraInicio = new TimeOnly(8, 0), HoraFin = new TimeOnly(19, 0) });
+
+        // ---------- Productos físicos con inventario ----------
+        var lector = new Producto { Codigo = "HW-LEC", Nombre = "Lector de código de barras", Tipo = TipoProducto.Producto, Precio = 1800, Costo = 950, StockMinimo = 10, Proveedor = nubeCentro };
+        var terminal = new Producto { Codigo = "HW-TPV", Nombre = "Terminal punto de venta", Tipo = TipoProducto.Producto, Precio = 9500, Costo = 6200, StockMinimo = 3, Proveedor = nubeCentro };
+        var impresora = new Producto { Codigo = "HW-IMP", Nombre = "Impresora de tickets", Tipo = TipoProducto.Producto, Precio = 2400, Costo = 1300, StockMinimo = 5, Proveedor = nubeCentro };
+        db.Productos.AddRange(lector, terminal, impresora);
+        foreach (var (producto, cantidad) in new[] { (lector, 25m), (terminal, 2m), (impresora, 8m) })
+        {
+            db.Existencias.Add(new Existencia { Producto = producto, Almacen = almacenGeneral, Cantidad = cantidad, CostoPromedio = producto.Costo });
+            db.MovimientosInventario.Add(new MovimientoInventario
+            {
+                Fecha = DateTime.Today.AddDays(-30), Producto = producto, Almacen = almacenGeneral, Tipo = TipoMovimientoInventario.AjusteEntrada,
+                Cantidad = cantidad, ExistenciaAnterior = 0, ExistenciaNueva = cantidad, CostoUnitario = producto.Costo, Notas = "Inventario inicial",
+            });
+        }
+
+        var mayoreo = new ListaPrecios { Nombre = "Mayoreo", Descripcion = "Distribuidores y compras por volumen" };
+        mayoreo.Precios.Add(new PrecioLista { Producto = lector, Precio = 1500 });
+        mayoreo.Precios.Add(new PrecioLista { Producto = impresora, Precio = 2050 });
+        db.ListasPrecios.Add(mayoreo);
+        clienteNorte.ListaPrecios = mayoreo;
 
         // ---------- Prospectos ----------
         var p1 = new Prospecto { Nombre = "Roberto", Apellidos = "Hernández", Empresa = "Logística Express", Cargo = "Director de operaciones", Telefono = "5551112233", Correo = "roberto@logexpress.ejemplo.com", Origen = "Sitio web", Etapa = EtapaProspecto.Nuevo, ValorEstimado = 45000, EmpleadoResponsable = carlos, UnidadNegocio = pymes };

@@ -3,6 +3,7 @@ import { useCatalogo, useEmpleados, useGuardarCita, useProspectos } from '../api
 import type { Cita } from '../api/tipos'
 import { aIsoFechaHora } from '../lib/formato'
 import { useSesion } from '../sesion/Sesion'
+import { AvisosCita } from './Mensajeria'
 import { Campo, errorDeCampo, Input, Modal, nulo, numeroONulo, PieFormulario, Select, Textarea } from './ui'
 
 interface Props {
@@ -104,6 +105,7 @@ export default function FormCita({ cita, prospectoId, fecha, onCerrar }: Props) 
         <Campo etiqueta="Notas" className="sm:col-span-2">
           <Textarea rows={2} value={f.notas} onChange={cambiar('notas')} />
         </Campo>
+        {cita && <div className="sm:col-span-2"><AvisosCita cita={cita} /></div>}
         <div className="sm:col-span-2">
           <PieFormulario error={guardar.error} guardando={guardar.isPending} onCancelar={onCerrar} />
         </div>
