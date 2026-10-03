@@ -16,14 +16,14 @@ export function Tabla({ columnas, children, pie, className }: {
   columnas: Columna[]; children: ReactNode; pie?: ReactNode; className?: string
 }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/60">
       <div className="overflow-x-auto">
         <table className={cn('w-full text-left text-sm', className)}>
           <thead>
             <tr>
               {columnas.map((c, i) => (
                 <th key={i} scope="col" className={cn(
-                  'border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap text-slate-500 uppercase',
+                  'border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold tracking-wide whitespace-nowrap text-slate-600 uppercase',
                   c.derecha && 'text-right', c.className)}>
                   {c.titulo}
                 </th>

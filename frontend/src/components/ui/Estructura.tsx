@@ -1,14 +1,27 @@
 import type { ReactNode } from 'react'
 import { cn } from './cn'
+import { acentos, useAcento } from './Acento'
 import { Icono } from './Icono'
 
-/** Título de página con descripción opcional y botones de acción a la derecha. */
+/**
+ * Título de página con descripción opcional y botones de acción a la derecha.
+ * Muestra el ícono del módulo con su color de acento (lo provee el Layout).
+ */
 export function Encabezado({ titulo, descripcion, acciones }: { titulo: ReactNode; descripcion?: ReactNode; acciones?: ReactNode }) {
+  const acento = useAcento()
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{titulo}</h1>
-        {descripcion && <p className="mt-1 text-sm text-slate-500">{descripcion}</p>}
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-center gap-4">
+        {acento && (
+          <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ring-1',
+            acentos[acento.color].chip)}>
+            <Icono nombre={acento.icono} className="h-5 w-5" />
+          </span>
+        )}
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">{titulo}</h1>
+          {descripcion && <p className="mt-0.5 text-sm text-slate-500">{descripcion}</p>}
+        </div>
       </div>
       {acciones && <div className="flex flex-wrap gap-2">{acciones}</div>}
     </div>
@@ -20,7 +33,7 @@ export function Tarjeta({ titulo, acciones, children, className, sinRelleno = fa
   titulo?: ReactNode; acciones?: ReactNode; children: ReactNode; className?: string; sinRelleno?: boolean
 }) {
   return (
-    <section className={cn('rounded-xl border border-slate-200 bg-white shadow-sm', !sinRelleno && 'p-5', className)}>
+    <section className={cn('rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/60', !sinRelleno && 'p-5', className)}>
       {(titulo || acciones) && (
         <div className={cn('mb-4 flex items-center justify-between gap-3', sinRelleno && 'mb-0 px-5 pt-5 pb-4')}>
           {titulo && <h2 className="font-semibold text-slate-900">{titulo}</h2>}
@@ -42,7 +55,7 @@ export function BarraFiltros({ children }: { children: ReactNode }) {
 export function Cargando({ texto = 'Cargando…' }: { texto?: string }) {
   return (
     <div className="flex items-center justify-center gap-2 p-10 text-sm text-slate-500" role="status">
-      <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-marca-600" />
+      <span className="h-5 w-5 animate-spin rounded-full border-2 border-marca-100 border-t-marca-600" />
       {texto}
     </div>
   )
@@ -78,7 +91,7 @@ export type Tono = 'gris' | 'azul' | 'indigo' | 'violeta' | 'ambar' | 'verde' | 
 
 export const tonos: Record<Tono, string> = {
   gris: 'bg-slate-100 text-slate-700',
-  azul: 'bg-marca-50 text-marca-700',
+  azul: 'bg-blue-100 text-blue-700',
   cielo: 'bg-sky-100 text-sky-700',
   indigo: 'bg-indigo-100 text-indigo-700',
   violeta: 'bg-violet-100 text-violet-700',
@@ -100,11 +113,11 @@ export function Segmentos<T extends string>({ opciones, valor, onCambiar, etique
   opciones: { valor: T; texto: string }[]; valor: T; onCambiar: (v: T) => void; etiqueta: string
 }) {
   return (
-    <div role="tablist" aria-label={etiqueta} className="inline-flex rounded-lg border border-slate-300 bg-white p-0.5">
+    <div role="tablist" aria-label={etiqueta} className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 shadow-xs">
       {opciones.map((o) => (
         <button key={o.valor} type="button" role="tab" aria-selected={valor === o.valor} onClick={() => onCambiar(o.valor)}
           className={cn('rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-            valor === o.valor ? 'bg-marca-600 text-white' : 'text-slate-600 hover:bg-slate-100')}>
+            valor === o.valor ? 'bg-marca-600 text-white shadow-sm' : 'text-slate-600 hover:bg-marca-50 hover:text-marca-700')}>
           {o.texto}
         </button>
       ))}
@@ -121,7 +134,7 @@ export function FiltroChips<T extends string>({ opciones, valor, onCambiar }: {
       {opciones.map((o) => (
         <button key={o.valor || 'todos'} type="button" aria-pressed={valor === o.valor} onClick={() => onCambiar(o.valor)}
           className={cn('rounded-full px-3 py-1 text-sm font-medium transition-colors',
-            valor === o.valor ? 'bg-marca-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-300 hover:bg-slate-50')}>
+            valor === o.valor ? 'bg-marca-600 text-white shadow-sm' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-marca-50 hover:text-marca-700 hover:ring-marca-200')}>
           {o.texto}
         </button>
       ))}

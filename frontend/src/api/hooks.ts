@@ -3,7 +3,8 @@ import { notificar } from '../components/ui'
 import { api, qs } from './cliente'
 import type {
   BitacoraEntrada, Catalogo, Cita, Cliente, Cotizacion, CotizacionResumen, Dashboard,
-  Empleado, EstatusCita, EstatusCotizacion, EtapaProspecto, ModuloPermiso, Producto, Prospecto, Rol, Usuario,
+  Almacen, Empleado, EstatusCita, EstatusCotizacion, EtapaProspecto, ModuloPermiso, Producto, Prospecto, Proveedor,
+  Rol, Sucursal, Usuario, Cargo, CargoResumen, CuentaPorPagar, CuentaPorPagarResumen, FiltroEstadoSaldo, ResumenSaldos,
 } from './tipos'
 
 interface OpcionesMutacion<TVariables, TResultado> {
@@ -52,7 +53,9 @@ export const useDashboard = () =>
   useQuery({ queryKey: ['dashboard'], queryFn: () => api.get<Dashboard>('/dashboard') })
 
 // ---------- Catálogos simples ----------
-export type RutaCatalogo = 'puestos' | 'unidades-negocio' | 'acciones-actividades'
+export type RutaCatalogo =
+  | 'puestos' | 'unidades-negocio' | 'acciones-actividades' | 'tipos-contacto' | 'descripciones-servicio'
+  | 'instrumentos-pago' | 'condiciones-pago'
 
 export const useCatalogo = (ruta: RutaCatalogo, incluirInactivos = false) =>
   useQuery({
@@ -100,6 +103,41 @@ export const useGuardarProducto = () => useGuardar<Producto>('/productos', 'Prod
 
 export const useDesactivarProducto = () =>
   useMutacion((id: number) => api.delete(`/productos/${id}`), { exito: 'Producto dado de baja.' })
+
+// ---------- Proveedores ----------
+export const useProveedores = (buscar = '', incluirInactivos = false) =>
+  useQuery({
+    queryKey: ['proveedores', { buscar, incluirInactivos }],
+    queryFn: () => api.get<Proveedor[]>(`/proveedores${qs({ buscar, incluirInactivos })}`),
+  })
+
+export const useGuardarProveedor = () => useGuardar<Proveedor>('/proveedores', 'Proveedor')
+
+export const useDesactivarProveedor = () =>
+  useMutacion((id: number) => api.delete(`/proveedores/${id}`), { exito: 'Proveedor dado de baja.' })
+
+// ---------- Sucursales y almacenes ----------
+export const useSucursales = (incluirInactivos = false) =>
+  useQuery({
+    queryKey: ['sucursales', { incluirInactivos }],
+    queryFn: () => api.get<Sucursal[]>(`/sucursales${qs({ incluirInactivos })}`),
+  })
+
+export const useGuardarSucursal = () => useGuardar<Sucursal>('/sucursales', 'Sucursal')
+
+export const useDesactivarSucursal = () =>
+  useMutacion((id: number) => api.delete(`/sucursales/${id}`), { exito: 'Sucursal dada de baja.' })
+
+export const useAlmacenes = (incluirInactivos = false) =>
+  useQuery({
+    queryKey: ['almacenes', { incluirInactivos }],
+    queryFn: () => api.get<Almacen[]>(`/almacenes${qs({ incluirInactivos })}`),
+  })
+
+export const useGuardarAlmacen = () => useGuardar<Almacen>('/almacenes', 'Almacén')
+
+export const useDesactivarAlmacen = () =>
+  useMutacion((id: number) => api.delete(`/almacenes/${id}`), { exito: 'Almacén dado de baja.' })
 
 // ---------- Prospectos ----------
 export interface FiltroProspectos {
@@ -241,3 +279,82 @@ export const useCatalogoPermisos = () =>
 export const useGuardarRol = () => useGuardar<Rol>('/roles', 'Rol')
 
 export const useEliminarRol = () => useMutacion((id: number) => api.delete(`/roles/${id}`), { exito: 'Rol eliminado.' })
+
+// ---------- Cargos y cobranza ----------
+export interface FiltroCargos {
+  buscar?: string
+  estado?: FiltroEstadoSaldo
+  clienteId?: number
+  prospectoId?: number
+}
+
+/** `ruta` es "cargos" (ventas) o "cobranza" (cuentas por cobrar): misma lista, distinto permiso. */
+export const useCargos = (filtro: FiltroCargos = {}, ruta: 'cargos' | 'cobranza' = 'cargos', habilitado = true) =>
+  useQuery({
+    queryKey: [ruta, filtro],
+    queryFn: () => api.get<CargoResumen[]>(`/${ruta}${qs({ ...filtro })}`),
+    enabled: habilitado,
+  })
+
+export const useCargo = (id: number | undefined) =>
+  useQuery({ queryKey: ['cargos', id], queryFn: () => api.get<Cargo>(`/cargos/${id}`), enabled: !!id })
+
+export const useResumenCobranza = () =>
+  useQuery({ queryKey: ['cobranza', 'resumen'], queryFn: () => api.get<ResumenSaldos>('/cobranza/resumen') })
+
+export const useCrearCargo = () =>
+  useMutacion((datos: unknown) => api.post<Cargo>('/cargos', datos),
+    { exito: (c) => `Cargo ${c.folio} creado.`, errorEnToast: false })
+
+export const useCargoDesdeCotizacion = () =>
+  useMutacion(({ cotizacionId, datos }: { cotizacionId: number; datos: unknown }) =>
+    api.post<Cargo>(`/cargos/desde-cotizacion/${cotizacionId}`, datos),
+  { exito: (c) => `Cargo ${c.folio} generado.`, errorEnToast: false })
+
+export const useCancelarCargo = () =>
+  useMutacion(({ id, motivo }: { id: number; motivo: string }) => api.post<Cargo>(`/cargos/${id}/cancelar`, { motivo }),
+    { exito: (c) => `Cargo ${c.folio} cancelado.`, errorEnToast: false })
+
+export const useRegistrarPagoCargo = () =>
+  useMutacion(({ id, datos }: { id: number; datos: unknown }) => api.post<Cargo>(`/cargos/${id}/pagos`, datos),
+    { exito: (c) => (c.saldo === 0 ? `Pago aplicado. ${c.folio} quedó liquidado.` : 'Pago aplicado.'), errorEnToast: false })
+
+export const useCancelarPagoCargo = () =>
+  useMutacion(({ id, pagoId }: { id: number; pagoId: number }) => api.post<Cargo>(`/cargos/${id}/pagos/${pagoId}/cancelar`, {}),
+    { exito: 'Pago cancelado.' })
+
+// ---------- Cuentas por pagar ----------
+export interface FiltroCuentasPorPagar {
+  buscar?: string
+  estado?: FiltroEstadoSaldo
+  proveedorId?: number
+}
+
+export const useCuentasPorPagar = (filtro: FiltroCuentasPorPagar = {}) =>
+  useQuery({
+    queryKey: ['cuentas-pagar', filtro],
+    queryFn: () => api.get<CuentaPorPagarResumen[]>(`/cuentas-pagar${qs({ ...filtro })}`),
+  })
+
+export const useCuentaPorPagar = (id: number | undefined) =>
+  useQuery({ queryKey: ['cuentas-pagar', id], queryFn: () => api.get<CuentaPorPagar>(`/cuentas-pagar/${id}`), enabled: !!id })
+
+export const useResumenCuentasPorPagar = () =>
+  useQuery({ queryKey: ['cuentas-pagar', 'resumen'], queryFn: () => api.get<ResumenSaldos>('/cuentas-pagar/resumen') })
+
+export const useGuardarCuentaPorPagar = () =>
+  useMutacion(({ id, datos }: { id?: number; datos: unknown }) =>
+    id ? api.put<CuentaPorPagar>(`/cuentas-pagar/${id}`, datos) : api.post<CuentaPorPagar>('/cuentas-pagar', datos),
+  { exito: (c, v) => `Cuenta ${c.folio} ${v.id ? 'actualizada' : 'registrada'}.`, errorEnToast: false })
+
+export const useCancelarCuentaPorPagar = () =>
+  useMutacion(({ id, motivo }: { id: number; motivo: string }) => api.post<CuentaPorPagar>(`/cuentas-pagar/${id}/cancelar`, { motivo }),
+    { exito: (c) => `Cuenta ${c.folio} cancelada.`, errorEnToast: false })
+
+export const useRegistrarPagoProveedor = () =>
+  useMutacion(({ id, datos }: { id: number; datos: unknown }) => api.post<CuentaPorPagar>(`/cuentas-pagar/${id}/pagos`, datos),
+    { exito: (c) => (c.saldo === 0 ? `Pago registrado. ${c.folio} quedó liquidada.` : 'Pago registrado.'), errorEnToast: false })
+
+export const useCancelarPagoProveedor = () =>
+  useMutacion(({ id, pagoId }: { id: number; pagoId: number }) => api.post<CuentaPorPagar>(`/cuentas-pagar/${id}/pagos/${pagoId}/cancelar`, {}),
+    { exito: 'Pago cancelado.' })

@@ -26,6 +26,19 @@ const rutas = {
   check: 'M5 13l4 4L19 7',
   candado: 'M7 11V7a5 5 0 0110 0v4M5 11h14v10H5z',
   alerta: 'M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z',
+  proveedores: 'M3 7h11v9H3zM14 10h4l3 3v3h-7M7.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM17.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3z',
+  sucursales: 'M3 9l1.5-5h15L21 9M3 9h18M3 9v1a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0V9M5 13v8h14v-8M10 21v-4h4v4',
+  pago: 'M3 7h18v10H3zM3 11h18M7 15h3',
+  rayo: 'M13 2L4 14h7l-1 8 9-12h-7l1-8z',
+  brillo: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3zM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z',
+  maletin: 'M9 6V5a2 2 0 012-2h2a2 2 0 012 2v1M4 6h16a1 1 0 011 1v11a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1zM3 12h18',
+  cuadricula: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
+  reloj: 'M12 7v5l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+  telefono: 'M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z',
+  tendencia: 'M3 17l6-6 4 4 8-8M15 7h6v6',
+  cobranza: 'M3 7h18v10H3zM12 15a3 3 0 100-6 3 3 0 000 6zM6 10v.01M18 14v.01',
+  recibo: 'M6 3h12v18l-3-2-3 2-3-2-3 2V3zM9 8h6M9 12h6M9 16h3',
+  salida: 'M12 19V5M5 12l7-7 7 7M4 21h16',
 } as const
 
 export type NombreIcono = keyof typeof rutas

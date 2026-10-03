@@ -5,6 +5,7 @@ export type EtapaProspecto =
 export type EstatusCita = 'Programada' | 'Confirmada' | 'Realizada' | 'Cancelada' | 'NoAsistio'
 export type EstatusCotizacion = 'Borrador' | 'Enviada' | 'Aceptada' | 'Rechazada' | 'Vencida'
 export type TipoProducto = 'Producto' | 'Servicio'
+export type TipoPersona = 'Fisica' | 'Moral'
 
 export interface Catalogo {
   id: number
@@ -12,6 +13,7 @@ export interface Catalogo {
   descripcion: string | null
   activo: boolean
   duracionMinutos: number | null
+  diasCredito: number | null
 }
 
 export interface Empleado {
@@ -202,4 +204,133 @@ export interface ModuloPermiso {
   nombre: string
   grupo: string
   acciones: string[]
+}
+
+export interface Proveedor {
+  id: number
+  razonSocial: string
+  nombreComercial: string | null
+  rfc: string | null
+  tipoPersona: TipoPersona
+  telefono: string | null
+  correo: string | null
+  direccion: string | null
+  contactoNombre: string | null
+  contactoTelefono: string | null
+  contactoCorreo: string | null
+  tipoContactoId: number | null
+  tipoContacto: string | null
+  condicionPagoId: number | null
+  condicionPago: string | null
+  diasCredito: number | null
+  instrumentoPagoId: number | null
+  instrumentoPago: string | null
+  banco: string | null
+  numeroCuenta: string | null
+  clabe: string | null
+  notas: string | null
+  activo: boolean
+}
+
+export interface Sucursal {
+  id: number
+  nombre: string
+  telefono: string | null
+  direccion: string | null
+  codigoPostal: string | null
+  activo: boolean
+  almacenes: number
+}
+
+export interface Almacen {
+  id: number
+  nombre: string
+  ubicacion: string | null
+  sucursalId: number
+  sucursal: string | null
+  activo: boolean
+}
+
+// ---------- Cobranza y cuentas por pagar ----------
+export type EstatusDocumento = 'Vigente' | 'Cancelado'
+export type EstadoSaldo = 'Pendiente' | 'Vencido' | 'Liquidado' | 'Cancelado'
+export type FiltroEstadoSaldo = 'ConSaldo' | 'Pendiente' | 'Vencido' | 'Liquidado' | 'Cancelado' | 'Todos'
+
+export interface Pago {
+  id: number
+  fecha: string
+  monto: number
+  instrumentoPagoId: number | null
+  instrumentoPago: string | null
+  referencia: string | null
+  notas: string | null
+  cancelado: boolean
+  fechaCancelacion: string | null
+}
+
+/** Campos comunes de un documento con saldo (cargo o cuenta por pagar). */
+export interface DocumentoSaldo {
+  id: number
+  folio: string
+  fecha: string
+  fechaVencimiento: string
+  diasCredito: number
+  total: number
+  pagado: number
+  saldo: number
+  estado: EstadoSaldo
+  diasVencido: number
+}
+
+export interface CargoResumen extends DocumentoSaldo {
+  prospectoId: number | null
+  clienteId: number | null
+  destinatario: string
+  cotizacion: string | null
+}
+
+export interface Cargo extends CargoResumen {
+  condicionPagoId: number | null
+  condicionPago: string | null
+  empleadoId: number | null
+  empleado: string | null
+  cotizacionId: number | null
+  notas: string | null
+  estatus: EstatusDocumento
+  motivoCancelacion: string | null
+  subtotal: number
+  iva: number
+  partidas: Partida[]
+  pagos: Pago[]
+}
+
+export interface CuentaPorPagarResumen extends DocumentoSaldo {
+  folioProveedor: string | null
+  proveedorId: number
+  proveedor: string
+  concepto: string
+}
+
+export interface CuentaPorPagar extends CuentaPorPagarResumen {
+  condicionPagoId: number | null
+  condicionPago: string | null
+  notas: string | null
+  estatus: EstatusDocumento
+  motivoCancelacion: string | null
+  subtotal: number
+  iva: number
+  pagos: Pago[]
+}
+
+export interface ResumenSaldos {
+  totalPorSaldar: number
+  totalVencido: number
+  documentosConSaldo: number
+  documentosVencidos: number
+  saldadoEsteMes: number
+  alCorriente: number
+  vencido1a30: number
+  vencido31a60: number
+  vencido61a90: number
+  vencidoMas90: number
 }

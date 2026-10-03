@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InteliCRM.Application.Catalogos;
 
-public record CatalogoDto(int Id, string Nombre, string? Descripcion, bool Activo, int? DuracionMinutos);
+public record CatalogoDto(int Id, string Nombre, string? Descripcion, bool Activo, int? DuracionMinutos, int? DiasCredito);
 
 public class GuardarCatalogoRequest
 {
@@ -22,10 +22,15 @@ public class GuardarCatalogoRequest
     /// <summary>Solo aplica a Acciones y actividades.</summary>
     [Range(5, 480)]
     public int? DuracionMinutos { get; set; }
+
+    /// <summary>Solo aplica a Condiciones de pago.</summary>
+    [Range(0, 365)]
+    public int? DiasCredito { get; set; }
 }
 
 /// <summary>
-/// Servicio genérico para catálogos simples: Puestos, Unidades de negocio y Acciones/actividades.
+/// Servicio genérico para catálogos simples: Puestos, Unidades de negocio, Acciones/actividades,
+/// Tipos de contacto, Descripciones de servicio, Instrumentos y Condiciones de pago.
 /// </summary>
 public class CatalogoService<T>(IAppDbContext db) where T : CatalogoBase, new()
 {
@@ -88,8 +93,10 @@ public class CatalogoService<T>(IAppDbContext db) where T : CatalogoBase, new()
         item.Activo = req.Activo;
         if (item is AccionActividad accion && req.DuracionMinutos is { } minutos)
             accion.DuracionMinutos = minutos;
+        if (item is CondicionPago condicion && req.DiasCredito is { } dias)
+            condicion.DiasCredito = dias;
     }
 
     private static CatalogoDto ADto(T x) =>
-        new(x.Id, x.Nombre, x.Descripcion, x.Activo, (x as AccionActividad)?.DuracionMinutos);
+        new(x.Id, x.Nombre, x.Descripcion, x.Activo, (x as AccionActividad)?.DuracionMinutos, (x as CondicionPago)?.DiasCredito);
 }

@@ -19,6 +19,17 @@ public interface IAppDbContext
     DbSet<Puesto> Puestos { get; }
     DbSet<UnidadNegocio> UnidadesNegocio { get; }
     DbSet<AccionActividad> AccionesActividades { get; }
+    DbSet<TipoContacto> TiposContacto { get; }
+    DbSet<DescripcionServicio> DescripcionesServicio { get; }
+    DbSet<InstrumentoPago> InstrumentosPago { get; }
+    DbSet<CondicionPago> CondicionesPago { get; }
+    DbSet<Proveedor> Proveedores { get; }
+    DbSet<Sucursal> Sucursales { get; }
+    DbSet<Almacen> Almacenes { get; }
+    DbSet<Cargo> Cargos { get; }
+    DbSet<PagoCargo> PagosCargo { get; }
+    DbSet<CuentaPorPagar> CuentasPorPagar { get; }
+    DbSet<PagoProveedor> PagosProveedor { get; }
 
     // Seguridad
     DbSet<Cuenta> Cuentas { get; }

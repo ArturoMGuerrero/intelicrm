@@ -85,6 +85,35 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
         var clienteNorte = new Cliente { RazonSocial = "Grupo Industrial del Norte S.A. de C.V.", NombreComercial = "GIN", Rfc = "GIN050505XY2", ContactoPrincipal = "Laura Garza", Telefono = "8180002222", Correo = "lgarza@gin.ejemplo.com", Direccion = "Monterrey, N.L." };
         db.Clientes.AddRange(clienteAcme, clienteNorte);
 
+        // ---------- Parametrización y proveedores ----------
+        var transferencia = new InstrumentoPago { Nombre = "Transferencia electrónica" };
+        db.InstrumentosPago.AddRange(new InstrumentoPago { Nombre = "Efectivo" }, transferencia,
+            new InstrumentoPago { Nombre = "Tarjeta de crédito/débito" }, new InstrumentoPago { Nombre = "Cheque" });
+
+        var credito30 = new CondicionPago { Nombre = "Crédito 30 días", DiasCredito = 30 };
+        db.CondicionesPago.AddRange(new CondicionPago { Nombre = "Contado", DiasCredito = 0 }, credito30,
+            new CondicionPago { Nombre = "Crédito 60 días", DiasCredito = 60 });
+
+        var contactoVentas = new TipoContacto { Nombre = "Ventas" };
+        db.TiposContacto.AddRange(contactoVentas, new TipoContacto { Nombre = "Cobranza" }, new TipoContacto { Nombre = "Soporte" });
+
+        db.DescripcionesServicio.AddRange(
+            new DescripcionServicio { Nombre = "Implementación de CRM", Descripcion = "Configuración inicial, carga de datos y puesta en marcha." },
+            new DescripcionServicio { Nombre = "Capacitación a usuarios", Descripcion = "Sesiones prácticas por módulo." });
+
+        var nubeCentro = new Proveedor
+        {
+            RazonSocial = "Servicios en la Nube del Centro S.A. de C.V.", NombreComercial = "NubeCentro", Rfc = "SNC100101AB3",
+            Telefono = "5560001234", Correo = "facturas@nubecentro.ejemplo.com", Direccion = "Querétaro, Qro.",
+            ContactoNombre = "Mónica Ríos", ContactoCorreo = "mrios@nubecentro.ejemplo.com", TipoContacto = contactoVentas,
+            CondicionPago = credito30, InstrumentoPago = transferencia, Banco = "BBVA", Clabe = "012180001234567891",
+        };
+        db.Proveedores.Add(nubeCentro);
+
+        var matriz = new Sucursal { Nombre = "Matriz", Telefono = "5550000000", Direccion = "Av. Insurgentes Sur 1000, CDMX", CodigoPostal = "03100" };
+        db.Sucursales.Add(matriz);
+        db.Almacenes.Add(new Almacen { Nombre = "Almacén general", Ubicacion = "Planta baja", Sucursal = matriz });
+
         // ---------- Prospectos ----------
         var p1 = new Prospecto { Nombre = "Roberto", Apellidos = "Hernández", Empresa = "Logística Express", Cargo = "Director de operaciones", Telefono = "5551112233", Correo = "roberto@logexpress.ejemplo.com", Origen = "Sitio web", Etapa = EtapaProspecto.Nuevo, ValorEstimado = 45000, EmpleadoResponsable = carlos, UnidadNegocio = pymes };
         var p2 = new Prospecto { Nombre = "Mariana", Apellidos = "Torres", Empresa = "Clínica San Ángel", Cargo = "Administradora", Telefono = "5552223344", Correo = "mtorres@sanangel.ejemplo.com", Origen = "Recomendación", Etapa = EtapaProspecto.Contactado, ValorEstimado = 60000, EmpleadoResponsable = sofia, UnidadNegocio = corporativo };
@@ -124,6 +153,34 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
                 (licenciaPro, 2, 10), (implementacion, 1, 10), (soporteAnual, 1, 0)),
             NuevaCotizacion(3, p7, clienteAcme, ana, EstatusCotizacion.Aceptada, hoy.AddDays(-10),
                 (licenciaPro, 1, 0), (implementacion, 1, 0), (capacitacion, 3, 0)));
+
+        // ---------- Cobranza y cuentas por pagar ----------
+        // La cotización aceptada COT-00003 se deja sin cargo para probar "Generar cargo".
+        var hoyFecha = DateOnly.FromDateTime(hoy);
+        var cargoNorte = NuevoCargo(1, clienteNorte, ana, hoyFecha.AddDays(-45), credito30,
+            (licenciaPro, 2, 0), (implementacion, 1, 0));
+        cargoNorte.Pagos.Add(new PagoCargo { Fecha = hoyFecha.AddDays(-20), Monto = 30000, InstrumentoPago = transferencia, Referencia = "SPEI 448120" });
+        var cargoAcme = NuevoCargo(2, clienteAcme, carlos, hoyFecha.AddDays(-12), null, (capacitacion, 2, 0));
+        cargoAcme.Pagos.Add(new PagoCargo { Fecha = hoyFecha.AddDays(-12), Monto = cargoAcme.Total, InstrumentoPago = transferencia, Referencia = "SPEI 450981" });
+        var cargoAcme2 = NuevoCargo(3, clienteAcme, ana, hoyFecha.AddDays(-5), credito30, (soporteAnual, 1, 0));
+        foreach (var c in new[] { cargoNorte, cargoAcme, cargoAcme2 }) c.RecalcularSaldo();
+        db.Cargos.AddRange(cargoNorte, cargoAcme, cargoAcme2);
+
+        var cxpServidores = new CuentaPorPagar
+        {
+            Consecutivo = 1, Folio = "CXP-00001", Proveedor = nubeCentro, FolioProveedor = "NC-10234",
+            Concepto = "Hospedaje de servidores (trimestre)", CondicionPago = credito30,
+        };
+        cxpServidores.FijarPlazo(hoyFecha.AddDays(-40), 30);
+        cxpServidores.FijarTotales(18000, 18000 * DocumentoConSaldo.TasaIva);
+        var cxpRespaldo = new CuentaPorPagar
+        {
+            Consecutivo = 2, Folio = "CXP-00002", Proveedor = nubeCentro, FolioProveedor = "NC-10377",
+            Concepto = "Servicio de respaldos", CondicionPago = credito30,
+        };
+        cxpRespaldo.FijarPlazo(hoyFecha.AddDays(-3), 30);
+        cxpRespaldo.FijarTotales(4500, 4500 * DocumentoConSaldo.TasaIva);
+        db.CuentasPorPagar.AddRange(cxpServidores, cxpRespaldo);
 
         // ---------- Roles ----------
         var admin = new Rol { Nombre = "Administrador", Descripcion = "Acceso total, incluida la seguridad.", EsAdministrador = true };
@@ -191,6 +248,25 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
         if (!resultado.Succeeded)
             throw new InvalidOperationException(
                 $"No se pudo crear el usuario demo {correo}: {string.Join(" ", resultado.Errors.Select(e => e.Description))}");
+    }
+
+    private static Cargo NuevoCargo(
+        int consecutivo, Cliente cliente, Empleado empleado, DateOnly fecha, CondicionPago? condicion,
+        params (Producto producto, decimal cantidad, decimal descuento)[] partidas)
+    {
+        var cargo = new Cargo
+        {
+            Consecutivo = consecutivo, Folio = $"CAR-{consecutivo:D5}", Cliente = cliente, Empleado = empleado, CondicionPago = condicion,
+        };
+        cargo.FijarPlazo(fecha, condicion?.DiasCredito ?? 0);
+        foreach (var (producto, cantidad, descuento) in partidas)
+            cargo.Partidas.Add(new CargoPartida
+            {
+                Producto = producto, Descripcion = producto.Nombre, Cantidad = cantidad,
+                PrecioUnitario = producto.Precio, DescuentoPorcentaje = descuento,
+            });
+        cargo.RecalcularTotales();
+        return cargo;
     }
 
     private static Cotizacion NuevaCotizacion(

@@ -20,11 +20,12 @@ export function Modal({ abierto, titulo, onCerrar, children, ancho = 'max-w-lg' 
 
   if (!abierto) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:p-8"
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 backdrop-blur-[2px] sm:p-8"
       onMouseDown={(e) => e.target === e.currentTarget && onCerrar()}>
       <div role="dialog" aria-modal="true" aria-label={titulo}
-        className={cn('my-auto w-full rounded-xl border border-slate-200 bg-white shadow-xl', ancho)}>
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        className={cn('my-auto w-full overflow-hidden rounded-2xl bg-white shadow-xl', ancho)}>
+        <div className="h-1 bg-marca-500" />
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-lg font-semibold text-slate-900">{titulo}</h2>
           <BotonIcono icono="cerrar" etiqueta="Cerrar" onClick={onCerrar} className="-mr-2" />
         </div>

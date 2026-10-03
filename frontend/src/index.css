@@ -6,15 +6,34 @@
  */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --color-marca-50: #eef6ff;
-  --color-marca-100: #d9eaff;
-  --color-marca-500: #2f7df6;
-  --color-marca-600: #1d64db;
-  --color-marca-700: #1a50b0;
+  /* Marca: azul índigo sobrio */
+  --color-marca-50: #eef2ff;
+  --color-marca-100: #e0e7ff;
+  --color-marca-200: #c7d2fe;
+  --color-marca-300: #a5b4fc;
+  --color-marca-400: #818cf8;
+  --color-marca-500: #5b6ee1;
+  --color-marca-600: #4757c9;
+  --color-marca-700: #3b48a8;
+  --color-marca-800: #323c86;
+  --color-marca-900: #2c3469;
 }
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-800 antialiased;
+    @apply min-h-screen bg-slate-50 text-slate-800 antialiased;
+    /* Fondo con manchas suaves de color, fijo al hacer scroll. */
+    background-image:
+      radial-gradient(at 0% 0%, rgb(71 87 201 / 0.05) 0, transparent 45%),
+      radial-gradient(at 100% 0%, rgb(14 165 233 / 0.04) 0, transparent 40%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  /* Scroll discreto para el menú lateral oscuro. */
+  .menu-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.15) transparent;
   }
 }

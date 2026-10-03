@@ -35,3 +35,25 @@ public enum TipoProducto
     Producto = 0,
     Servicio = 1
 }
+
+public enum TipoPersona
+{
+    Fisica = 0,
+    Moral = 1
+}
+
+/// <summary>Estatus de un cargo o una cuenta por pagar.</summary>
+public enum EstatusDocumento
+{
+    Vigente = 0,
+    Cancelado = 1
+}
+
+/// <summary>Situación del saldo de un documento (se calcula, no se guarda).</summary>
+public enum EstadoSaldo
+{
+    Pendiente = 0,
+    Vencido = 1,
+    Liquidado = 2,
+    Cancelado = 3
+}
