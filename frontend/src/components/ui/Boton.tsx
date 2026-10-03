@@ -12,7 +12,7 @@ const base =
   'disabled:cursor-not-allowed disabled:opacity-50'
 
 const variantes: Record<Variante, string> = {
-  primario: 'bg-gradient-to-r from-marca-600 to-indigo-600 text-white shadow-md shadow-marca-500/25 hover:from-marca-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-marca-500/30',
+  primario: 'bg-marca-600 text-white shadow-sm hover:bg-marca-700',
   secundario: 'border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-marca-200 hover:bg-marca-50 hover:text-marca-700',
   peligro: 'border border-red-200 bg-white text-red-600 hover:bg-red-50',
   fantasma: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',

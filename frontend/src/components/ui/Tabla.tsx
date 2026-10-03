@@ -23,7 +23,7 @@ export function Tabla({ columnas, children, pie, className }: {
             <tr>
               {columnas.map((c, i) => (
                 <th key={i} scope="col" className={cn(
-                  'border-b border-marca-100 bg-gradient-to-r from-marca-50 via-indigo-50/60 to-sky-50 px-4 py-3 text-xs font-semibold tracking-wide whitespace-nowrap text-marca-700 uppercase',
+                  'border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold tracking-wide whitespace-nowrap text-slate-600 uppercase',
                   c.derecha && 'text-right', c.className)}>
                   {c.titulo}
                 </th>
@@ -41,7 +41,7 @@ export function Tabla({ columnas, children, pie, className }: {
 /** Fila de tabla. `inactiva` la atenúa; si tiene onClick se vuelve clicable. */
 export function Fila({ inactiva, className, onClick, ...props }: HTMLAttributes<HTMLTableRowElement> & { inactiva?: boolean }) {
   return (
-    <tr className={cn('transition-colors hover:bg-marca-50/50', onClick && 'cursor-pointer', inactiva && 'opacity-60', className)}
+    <tr className={cn('transition-colors hover:bg-slate-50', onClick && 'cursor-pointer', inactiva && 'opacity-60', className)}
       onClick={onClick} {...props} />
   )
 }

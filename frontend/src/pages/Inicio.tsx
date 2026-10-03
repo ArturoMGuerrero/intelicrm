@@ -6,33 +6,31 @@ import { etiquetaEstatusCita, etiquetaEtapa, tonoEstatusCita } from '../lib/etiq
 import { formatoDiaLargo, formatoFechaHora, formatoHora, formatoMoneda } from '../lib/formato'
 import { useSesion } from '../sesion/Sesion'
 
-/** Indicador del tablero: tarjeta con degradado de color, ícono y cifra grande. */
-function Indicador({ titulo, valor, detalle, icono, fondo }: {
-  titulo: string; valor: string | number; detalle?: string; icono: NombreIcono; fondo: string
+/** Indicador del tablero: cifra grande con un ícono en un color suave. */
+function Indicador({ titulo, valor, detalle, icono, color }: {
+  titulo: string; valor: string | number; detalle?: string; icono: NombreIcono; color: string
 }) {
   return (
-    <div className={cn('relative overflow-hidden rounded-2xl bg-gradient-to-br p-5 text-white shadow-lg', fondo)}>
-      <div className="absolute -top-6 -right-6 h-24 w-24 rounded-full bg-white/15" />
-      <div className="absolute -right-2 -bottom-10 h-20 w-20 rounded-full bg-white/10" />
-      <div className="relative flex items-start justify-between gap-3">
-        <p className="text-sm font-medium text-white/85">{titulo}</p>
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/25">
+    <Tarjeta>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-medium text-slate-500">{titulo}</p>
+        <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', color)}>
           <Icono nombre={icono} className="h-5 w-5" />
         </span>
       </div>
-      <p className="relative mt-2 text-3xl font-bold tracking-tight tabular-nums">{valor}</p>
-      {detalle && <p className="relative mt-1 text-xs text-white/80">{detalle}</p>}
-    </div>
+      <p className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 tabular-nums">{valor}</p>
+      {detalle && <p className="mt-1 text-xs text-slate-500">{detalle}</p>}
+    </Tarjeta>
   )
 }
 
 /** Color de la barra de cada etapa del embudo. */
 const barraEtapa: Partial<Record<EtapaProspecto, string>> = {
-  Nuevo: 'from-slate-400 to-slate-500',
-  Contactado: 'from-sky-400 to-blue-500',
-  Calificado: 'from-indigo-400 to-indigo-600',
-  Propuesta: 'from-violet-400 to-purple-600',
-  Negociacion: 'from-amber-400 to-orange-500',
+  Nuevo: 'bg-slate-400',
+  Contactado: 'bg-sky-500',
+  Calificado: 'bg-marca-500',
+  Propuesta: 'bg-teal-500',
+  Negociacion: 'bg-amber-500',
 }
 
 const enlace = 'rounded-full bg-marca-50 px-3 py-1 text-xs font-semibold text-marca-700 transition-colors hover:bg-marca-100'
@@ -58,14 +56,14 @@ export default function Inicio() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Indicador titulo="Prospectos en seguimiento" valor={data.prospectosActivos} detalle={`${data.clientesActivos} clientes activos`}
-          icono="prospectos" fondo="from-fuchsia-500 to-pink-600 shadow-fuchsia-500/30" />
+          icono="prospectos" color="bg-blue-50 text-blue-600" />
         <Indicador titulo="Citas de hoy" valor={data.citasHoy} detalle="Agenda del equipo"
-          icono="citas" fondo="from-sky-400 to-blue-600 shadow-sky-500/30" />
+          icono="citas" color="bg-sky-50 text-sky-600" />
         <Indicador titulo="Cotizaciones abiertas" valor={data.cotizacionesAbiertas}
           detalle={`${formatoMoneda(data.montoCotizacionesAbiertas)} en juego`}
-          icono="cotizaciones" fondo="from-amber-400 to-orange-500 shadow-amber-500/30" />
+          icono="cotizaciones" color="bg-amber-50 text-amber-600" />
         <Indicador titulo="Ganado este mes" valor={formatoMoneda(data.montoGanadoMes)} detalle="Cotizaciones aceptadas"
-          icono="tendencia" fondo="from-emerald-400 to-teal-600 shadow-emerald-500/30" />
+          icono="tendencia" color="bg-emerald-50 text-emerald-600" />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
@@ -78,8 +76,8 @@ export default function Inicio() {
                   <span className="font-medium text-slate-700">{etiquetaEtapa[e.etapa]}</span>
                   <span className="text-slate-500 tabular-nums">{e.cantidad} · {formatoMoneda(e.valorEstimado)}</span>
                 </div>
-                <div className="h-3 rounded-full bg-slate-100">
-                  <div className={cn('h-full rounded-full bg-gradient-to-r transition-all', barraEtapa[e.etapa])}
+                <div className="h-2.5 rounded-full bg-slate-100">
+                  <div className={cn('h-full rounded-full transition-all', barraEtapa[e.etapa])}
                     style={{ width: `${e.cantidad === 0 ? 0 : Math.max(4, (e.cantidad / maximo) * 100)}%` }} />
                 </div>
               </li>
