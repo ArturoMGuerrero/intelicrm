@@ -39,6 +39,7 @@ public class CargoConfig : IEntityTypeConfiguration<Cargo>
         b.HasOne(x => x.Cliente).WithMany().HasForeignKey(x => x.ClienteId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Empleado).WithMany().HasForeignKey(x => x.EmpleadoId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Cotizacion).WithMany().HasForeignKey(x => x.CotizacionId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Almacen).WithMany().HasForeignKey(x => x.AlmacenId).OnDelete(DeleteBehavior.Restrict);
         b.HasMany(x => x.Partidas).WithOne().HasForeignKey(p => p.CargoId).OnDelete(DeleteBehavior.Cascade);
         b.HasMany(x => x.Pagos).WithOne().HasForeignKey(p => p.CargoId).OnDelete(DeleteBehavior.Restrict);
     }
@@ -73,6 +74,7 @@ public class CuentaPorPagarConfig : IEntityTypeConfiguration<CuentaPorPagar>
         b.Property(x => x.FolioProveedor).HasMaxLength(50);
         b.Property(x => x.Concepto).HasMaxLength(300).IsRequired();
         b.HasOne(x => x.Proveedor).WithMany().HasForeignKey(x => x.ProveedorId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.OrdenCompra).WithMany().HasForeignKey(x => x.OrdenCompraId).OnDelete(DeleteBehavior.Restrict);
         b.HasMany(x => x.Pagos).WithOne().HasForeignKey(p => p.CuentaPorPagarId).OnDelete(DeleteBehavior.Restrict);
     }
 }

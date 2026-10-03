@@ -35,10 +35,12 @@ export const token = {
 /** Se dispara cuando la API responde 401 a una petición autenticada (token vencido o revocado). */
 export const EVENTO_SESION_EXPIRADA = 'intelicrm:sesion-expirada'
 
-async function solicitar<T>(metodo: string, url: string, cuerpo?: unknown): Promise<T> {
+async function solicitar<T>(metodo: string, url: string, cuerpo?: unknown, comoArchivo = false): Promise<T> {
   const t = token.obtener()
   const headers: Record<string, string> = {}
-  if (cuerpo !== undefined) headers['Content-Type'] = 'application/json'
+  // FormData (subida de archivos) lleva su propio Content-Type con el separador.
+  const esFormulario = cuerpo instanceof FormData
+  if (cuerpo !== undefined && !esFormulario) headers['Content-Type'] = 'application/json'
   if (t) headers.Authorization = `Bearer ${t}`
 
   let respuesta: Response
@@ -46,7 +48,7 @@ async function solicitar<T>(metodo: string, url: string, cuerpo?: unknown): Prom
     respuesta = await fetch(`/api${url}`, {
       method: metodo,
       headers,
-      body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
+      body: cuerpo === undefined ? undefined : esFormulario ? cuerpo : JSON.stringify(cuerpo),
     })
   } catch {
     throw new ApiError(0, 'No se pudo conectar con el servidor. ¿Está corriendo el backend?')
@@ -69,6 +71,7 @@ async function solicitar<T>(metodo: string, url: string, cuerpo?: unknown): Prom
   }
 
   if (respuesta.status === 204) return undefined as T
+  if (comoArchivo) return (await respuesta.blob()) as T
   return (await respuesta.json()) as T
 }
 
@@ -94,4 +97,14 @@ export const api = {
   put: <T>(url: string, cuerpo: unknown) => solicitar<T>('PUT', url, cuerpo),
   patch: <T>(url: string, cuerpo: unknown) => solicitar<T>('PATCH', url, cuerpo),
   delete: (url: string) => solicitar<void>('DELETE', url),
+
+  /** Descarga un archivo autenticado y lo ofrece al navegador con el nombre indicado. */
+  async descargar(url: string, nombreArchivo: string) {
+    const blob = await solicitar<Blob>('GET', url, undefined, true)
+    const enlace = document.createElement('a')
+    enlace.href = URL.createObjectURL(blob)
+    enlace.download = nombreArchivo
+    enlace.click()
+    URL.revokeObjectURL(enlace.href)
+  },
 }

@@ -39,6 +39,16 @@ frontend/                    React 19 + Vite + TypeScript + Tailwind + TanStack 
 | Cargos a prospectos / Remisión  | Cargos (desde cotización o directos) | `/api/cargos`          |
 | Cuentas por cobrar              | Cobranza: saldos, antigüedad y pagos | `/api/cobranza`      |
 | Cuentas por pagar               | Facturas de proveedor y sus pagos | `/api/cuentas-pagar`    |
+| Órdenes de compra / Aplicar compra | Compras con recepción parcial (entra al almacén y genera la cuenta por pagar) | `/api/compras` |
+| Pedido de faltantes             | Faltantes contra stock mínimo → órdenes por proveedor | `/api/compras/faltantes` |
+| Existencias / Kárdex / Modificar existencias | Inventario por almacén, kárdex, ajustes y traspasos | `/api/inventario` |
+| Mi empresa                      | Datos fiscales, logo y cuentas bancarias | `/api/empresa`      |
+| Horarios (página vacía en el original) | Horario laboral por empleado; las citas deben caer dentro | `/api/empleados/{id}/horario` |
+| Listas de precios (solo en el menú del original) | Precios especiales asignados a clientes | `/api/listas-precios` |
+| Definición de mensajes          | Plantillas de confirmación y recordatorio de citas (correo y SMS) | `/api/mensajes` |
+| Gestión de promociones          | Envíos masivos por SMS o correo | `/api/promociones`         |
+| Formatos                        | Archivos descargables (máx. 5 MB) | `/api/formatos`           |
+| Soporte                         | Mensajes al equipo de soporte | `/api/soporte`                |
 
 Cobranza: un cargo no se edita (se cancela, solo si no tiene pagos vigentes); los pagos no se borran, se
 cancelan y el saldo se recalcula; no se aceptan pagos mayores al saldo ni con fecha futura; una cotización
@@ -107,6 +117,27 @@ npm run dev
 
 El frontend redirige `/api` al backend (ver `frontend/vite.config.ts`).
 
+## Correo y SMS
+
+Sección `Mensajeria` de la configuración. **Sin configurar, los envíos son simulados**: no sale nada, pero quedan
+registrados en Mensajes → Historial (útil para probar sin gastar créditos). Las credenciales van con *user-secrets*
+o variables de entorno, nunca en el repositorio:
+
+```bash
+dotnet user-secrets --project src/InteliCRM.Api set "Mensajeria:Correo:Host" "smtp.ejemplo.com"
+dotnet user-secrets --project src/InteliCRM.Api set "Mensajeria:Correo:Usuario" "notificaciones@ejemplo.com"
+dotnet user-secrets --project src/InteliCRM.Api set "Mensajeria:Correo:Password" "<contraseña>"
+dotnet user-secrets --project src/InteliCRM.Api set "Mensajeria:Correo:Remitente" "notificaciones@ejemplo.com"
+dotnet user-secrets --project src/InteliCRM.Api set "Mensajeria:Sms:ApiKey" "<api key de smsmasivos.com.mx>"
+dotnet user-secrets --project src/InteliCRM.Api set "Mensajeria:CorreoSoporte" "soporte@ejemplo.com"
+```
+
+Opcionales: `Mensajeria:Correo:Puerto` (587), `Mensajeria:Correo:Ssl` (true) y `Mensajeria:Sms:Sandbox` (true = el
+proveedor valida sin entregar ni cobrar). Los SMS usan smsmasivos.com.mx, el mismo proveedor del sistema original.
+
+> **Seguridad:** el sistema original tiene la API key de smsmasivos escrita en `GenAPP/Class/SendSms.cs` y, por
+> lo tanto, en su historial de Git. Conviene regenerarla en smsmasivos y usar la nueva solo por configuración.
+
 ## Base de datos
 
 `BaseDeDatos:Proveedor` en `appsettings.json` acepta `Sqlite` (actual), `SqlServer` o `InMemory`.
@@ -134,14 +165,12 @@ error 1920), por eso se usa SQLite para desarrollo.
 
 ## Pendientes
 
-- PDF y envío por correo de cotizaciones; recordatorios de citas.
+- PDF de cotizaciones y cargos (con el logo y los datos de Mi empresa) y envío por correo.
+- Recordatorios de citas automáticos (hoy se envían con un botón desde la cita).
 - Mensajes de validación de los atributos (`[Required]`, `[EmailAddress]`) en español.
 - Paginación en listas grandes.
 - Módulos restantes del sistema original:
-  - Ventas: Facturación electrónica (CFDI). Requiere elegir un proveedor de timbrado (PAC).
-  - Compras: Pedido de faltantes, Órdenes de compra, Aplicar compra.
-  - Inventarios: Existencias, Kárdex, Ajustes de existencias.
+  - Facturación electrónica (CFDI). Requiere elegir un proveedor de timbrado (PAC) y los certificados (CSD).
   - Caja (apertura/cierre): en el sistema original estas páginas estaban vacías, hay que definirla.
-  - Configuración: Mi empresa (datos fiscales y certificados), Listas de precios, Promociones,
-    Definición de mensajes, Formatos.
+  - Servicio para la app móvil (`app_movil.asmx`): la API REST ya cubre lo que hacía; falta definir la app.
 - Alta de nuevas empresas (cuentas) desde una pantalla de super-administrador.

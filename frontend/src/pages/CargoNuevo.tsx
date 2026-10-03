@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
-import { useCatalogo, useClientes, useCrearCargo, useEmpleados, useProductos, useProspectos } from '../api/hooks'
+import {
+  useAlmacenes, useCatalogo, useClientes, useCrearCargo, useEmpleados, usePreciosCliente, useProductos, useProspectos,
+} from '../api/hooks'
 import { EditorPartidas, partidaVacia, partidasParaApi, type PartidaForm } from '../components/EditorPartidas'
 import {
   Boton, BotonEnlace, Campo, Encabezado, errorDeCampo, Icono, Input, MensajeError, nulo, Select, Tarjeta, Textarea,
@@ -19,6 +21,7 @@ export default function CargoNuevo() {
   const empleados = useEmpleados()
   const productos = useProductos()
   const condiciones = useCatalogo('condiciones-pago').data ?? []
+  const almacenes = useAlmacenes().data ?? []
 
   const [para, setPara] = useState<'prospecto' | 'cliente'>(params.get('clienteId') ? 'cliente' : 'prospecto')
   const [f, setF] = useState({
@@ -28,10 +31,16 @@ export default function CargoNuevo() {
     fecha: aIsoFecha(new Date()),
     condicionPagoId: '',
     diasCredito: '0',
+    almacenId: '',
     notas: '',
   })
   const [partidas, setPartidas] = useState<PartidaForm[]>(() => [partidaVacia()])
   const cambiar = (campo: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [campo]: e.target.value })
+
+  // Si el destinatario es (o está ligado a) un cliente con lista de precios, se usan sus precios.
+  const clienteEfectivo = para === 'cliente' ? Number(f.clienteId) || undefined
+    : prospectos.data?.find((p) => p.id === Number(f.prospectoId))?.clienteId ?? undefined
+  const precios = usePreciosCliente(clienteEfectivo)
 
   // Al elegir una condición de pago se proponen sus días de crédito.
   const elegirCondicion = (id: string) => {
@@ -48,6 +57,7 @@ export default function CargoNuevo() {
       fecha: f.fecha,
       condicionPagoId: f.condicionPagoId ? Number(f.condicionPagoId) : null,
       diasCredito: Number(f.diasCredito),
+      almacenId: f.almacenId ? Number(f.almacenId) : null,
       notas: nulo(f.notas),
       partidas: partidasParaApi(partidas),
     }, { onSuccess: (c) => navegar(`/cargos/${c.id}`, { replace: true }) })
@@ -97,9 +107,15 @@ export default function CargoNuevo() {
           <Campo etiqueta="Días de crédito" ayuda="0 = contado." error={errorDeCampo(crear.error, 'diasCredito')}>
             <Input type="number" min="0" max="365" value={f.diasCredito} onChange={cambiar('diasCredito')} required />
           </Campo>
+          <Campo etiqueta="Surtir del almacén" ayuda="Vacío = no mueve inventario.">
+            <Select value={f.almacenId} onChange={cambiar('almacenId')}>
+              <option value="">—</option>
+              {almacenes.map((a) => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+            </Select>
+          </Campo>
         </Tarjeta>
 
-        <EditorPartidas partidas={partidas} setPartidas={setPartidas} productos={productos.data} />
+        <EditorPartidas partidas={partidas} setPartidas={setPartidas} productos={productos.data} preciosEspeciales={precios.data} />
 
         <Tarjeta>
           <Campo etiqueta="Notas"><Textarea value={f.notas} onChange={cambiar('notas')} /></Campo>

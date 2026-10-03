@@ -57,3 +57,42 @@ public enum EstadoSaldo
     Liquidado = 2,
     Cancelado = 3
 }
+
+public enum TipoMovimientoInventario
+{
+    EntradaCompra = 0,
+    SalidaVenta = 1,
+    AjusteEntrada = 2,
+    AjusteSalida = 3,
+    TraspasoEntrada = 4,
+    TraspasoSalida = 5,
+    CancelacionVenta = 6
+}
+
+public enum EstatusOrdenCompra
+{
+    Pedida = 0,
+    RecibidaParcial = 1,
+    Recibida = 2,
+    Cancelada = 3
+}
+
+public enum CanalMensaje
+{
+    Correo = 0,
+    Sms = 1
+}
+
+public enum TipoPlantilla
+{
+    ConfirmacionCita = 0,
+    RecordatorioCita = 1
+}
+
+/// <summary>Simulado: no hay proveedor configurado y el mensaje solo se registró.</summary>
+public enum EstatusMensaje
+{
+    Enviado = 0,
+    Simulado = 1,
+    Error = 2
+}

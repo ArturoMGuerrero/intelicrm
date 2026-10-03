@@ -24,14 +24,14 @@ public record CuentaPorPagarDto(
     int ProveedorId, string Proveedor, string Concepto, string? Notas,
     EstatusDocumento Estatus, string? MotivoCancelacion,
     decimal Subtotal, decimal Iva, decimal Total, decimal Pagado, decimal Saldo,
-    EstadoSaldo Estado, int DiasVencido, List<PagoDto> Pagos)
+    EstadoSaldo Estado, int DiasVencido, int? OrdenCompraId, string? OrdenCompra, List<PagoDto> Pagos)
 {
     public static CuentaPorPagarDto Desde(CuentaPorPagar c, DateOnly hoy) => new(
         c.Id, c.Folio, c.FolioProveedor, c.Fecha, c.FechaVencimiento, c.DiasCredito,
         c.CondicionPagoId, c.CondicionPago?.Nombre,
         c.ProveedorId, c.Proveedor?.RazonSocial ?? "", c.Concepto, c.Notas,
         c.Estatus, c.MotivoCancelacion,
-        c.Subtotal, c.Iva, c.Total, c.Pagado, c.Saldo, c.Estado(hoy), c.DiasVencido(hoy),
+        c.Subtotal, c.Iva, c.Total, c.Pagado, c.Saldo, c.Estado(hoy), c.DiasVencido(hoy), c.OrdenCompraId, c.OrdenCompra?.Folio,
         c.Pagos.OrderBy(p => p.Fecha).ThenBy(p => p.Id).Select(PagoDto.Desde).ToList());
 }
 
@@ -129,6 +129,8 @@ public class CuentaPorPagarService(IAppDbContext db)
             throw new ReglaNegocioException($"La cuenta {cuenta.Folio} está cancelada.");
         if (cuenta.Pagos.Any(p => !p.Cancelado))
             throw new ReglaNegocioException("No se puede modificar una cuenta con pagos aplicados.");
+        if (cuenta.OrdenCompraId is not null)
+            throw new ReglaNegocioException("Esta cuenta se generó al recibir una orden de compra; su importe no se modifica.");
 
         await AplicarAsync(cuenta, req, id, ct);
         await db.SaveChangesAsync(ct);
@@ -161,8 +163,32 @@ public class CuentaPorPagarService(IAppDbContext db)
         return await ObtenerAsync(id, ct);
     }
 
+    /// <summary>
+    /// Cuenta por pagar de una recepción de compra (con IVA). No guarda: el llamador la agrega
+    /// y guarda junto con la entrada al almacén.
+    /// </summary>
+    public async Task<CuentaPorPagar> NuevaDesdeCompraAsync(
+        OrdenCompra orden, DateOnly fecha, string? folioProveedor, decimal subtotal, CancellationToken ct)
+    {
+        var folio = string.IsNullOrWhiteSpace(folioProveedor) ? null : folioProveedor.Trim().ToUpper();
+        if (folio is not null && await db.CuentasPorPagar.AnyAsync(c =>
+                c.ProveedorId == orden.ProveedorId && c.FolioProveedor == folio && c.Estatus == EstatusDocumento.Vigente, ct))
+            throw new ReglaNegocioException($"Ya existe una cuenta vigente con el folio {folio} de este proveedor.");
+
+        var consecutivo = (await db.CuentasPorPagar.MaxAsync(c => (int?)c.Consecutivo, ct) ?? 0) + 1;
+        var cuenta = new CuentaPorPagar
+        {
+            Consecutivo = consecutivo, Folio = $"CXP-{consecutivo:D5}",
+            ProveedorId = orden.ProveedorId, OrdenCompraId = orden.Id, FolioProveedor = folio,
+            Concepto = $"Recepción de la orden de compra {orden.Folio}", CondicionPagoId = orden.CondicionPagoId,
+        };
+        cuenta.FijarPlazo(fecha, orden.DiasCredito);
+        cuenta.FijarTotales(subtotal, subtotal * DocumentoConSaldo.TasaIva);
+        return cuenta;
+    }
+
     private IQueryable<CuentaPorPagar> Consulta() =>
-        db.CuentasPorPagar.Include(c => c.Proveedor).Include(c => c.CondicionPago)
+        db.CuentasPorPagar.Include(c => c.Proveedor).Include(c => c.CondicionPago).Include(c => c.OrdenCompra)
             .Include(c => c.Pagos).ThenInclude(p => p.InstrumentoPago);
 
     private async Task<CuentaPorPagar> BuscarConPagosAsync(int id, CancellationToken ct) =>

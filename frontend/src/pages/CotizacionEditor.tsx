@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import {
-  useCambiarEstatusCotizacion, useCargoDesdeCotizacion, useCatalogo, useClientes, useCotizacion, useEliminarCotizacion, useEmpleados,
-  useGuardarCotizacion, useProductos, useProspectos,
+  useAlmacenes, useCambiarEstatusCotizacion, useCargoDesdeCotizacion, useCatalogo, useClientes, useCotizacion, useEliminarCotizacion, useEmpleados,
+  useGuardarCotizacion, usePreciosCliente, useProductos, useProspectos,
 } from '../api/hooks'
 import type { Cotizacion, EstatusCotizacion } from '../api/tipos'
 import {
@@ -62,6 +62,11 @@ function Editor({ cotizacion }: { cotizacion?: Cotizacion }) {
   }, [prospectos.data]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const cambiar = (campo: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [campo]: e.target.value })
+
+  // Si el destinatario es (o está ligado a) un cliente con lista de precios, se usan sus precios.
+  const clienteEfectivo = para === 'cliente' ? Number(f.clienteId) || undefined
+    : prospectos.data?.find((p) => p.id === Number(f.prospectoId))?.clienteId ?? undefined
+  const precios = usePreciosCliente(clienteEfectivo)
 
   const enviar = (e: FormEvent) => {
     e.preventDefault()
@@ -168,7 +173,7 @@ function Editor({ cotizacion }: { cotizacion?: Cotizacion }) {
             </div>
           </Tarjeta>
 
-          <EditorPartidas partidas={partidas} setPartidas={setPartidas} productos={productos.data} />
+          <EditorPartidas partidas={partidas} setPartidas={setPartidas} productos={productos.data} preciosEspeciales={precios.data} />
 
           <Tarjeta>
             <Campo etiqueta="Notas y condiciones">
@@ -200,7 +205,8 @@ function GenerarCargo({ cotizacion, onCerrar }: { cotizacion: Cotizacion; onCerr
   const navegar = useNavigate()
   const generar = useCargoDesdeCotizacion()
   const condiciones = useCatalogo('condiciones-pago').data ?? []
-  const [f, setF] = useState({ fecha: aIsoFecha(new Date()), condicionPagoId: '', diasCredito: '0' })
+  const almacenes = useAlmacenes().data ?? []
+  const [f, setF] = useState({ fecha: aIsoFecha(new Date()), condicionPagoId: '', diasCredito: '0', almacenId: '' })
 
   const elegirCondicion = (id: string) => {
     const condicion = condiciones.find((c) => c.id === Number(id))
@@ -211,7 +217,10 @@ function GenerarCargo({ cotizacion, onCerrar }: { cotizacion: Cotizacion; onCerr
     e.preventDefault()
     generar.mutate({
       cotizacionId: cotizacion.id,
-      datos: { fecha: f.fecha, condicionPagoId: f.condicionPagoId ? Number(f.condicionPagoId) : null, diasCredito: Number(f.diasCredito) },
+      datos: {
+        fecha: f.fecha, condicionPagoId: f.condicionPagoId ? Number(f.condicionPagoId) : null, diasCredito: Number(f.diasCredito),
+        almacenId: f.almacenId ? Number(f.almacenId) : null,
+      },
     }, { onSuccess: (c) => navegar(`/cargos/${c.id}`) })
   }
 
@@ -234,6 +243,12 @@ function GenerarCargo({ cotizacion, onCerrar }: { cotizacion: Cotizacion; onCerr
             <Input type="number" min="0" max="365" value={f.diasCredito} onChange={(e) => setF({ ...f, diasCredito: e.target.value })} required />
           </Campo>
         </div>
+        <Campo etiqueta="Surtir del almacén" ayuda="Los productos saldrán de este almacén. Déjalo vacío si no se entrega mercancía.">
+          <Select value={f.almacenId} onChange={(e) => setF({ ...f, almacenId: e.target.value })}>
+            <option value="">— No mover inventario</option>
+            {almacenes.map((a) => <option key={a.id} value={a.id}>{a.nombre} ({a.sucursal})</option>)}
+          </Select>
+        </Campo>
         <PieFormulario error={generar.error} guardando={generar.isPending} onCancelar={onCerrar} textoGuardar="Generar cargo" />
       </form>
     </Modal>

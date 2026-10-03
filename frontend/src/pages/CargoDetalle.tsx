@@ -88,6 +88,7 @@ export default function CargoDetalle() {
               ['Vence', `${formatoFecha(cargo.fechaVencimiento)} (${cargo.diasCredito ? `${cargo.diasCredito} días` : 'contado'})`],
               ['Condición de pago', cargo.condicionPago ?? '—'],
               ['Vendedor', cargo.empleado ?? '—'],
+              ['Almacén', cargo.almacen ?? 'No mueve inventario'],
               ['Cotización', cargo.cotizacionId
                 ? <Link to={`/cotizaciones/${cargo.cotizacionId}`} className="text-marca-600 hover:underline">{cargo.cotizacion}</Link>
                 : '—'],

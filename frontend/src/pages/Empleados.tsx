@@ -5,12 +5,14 @@ import {
   BarraFiltros, Boton, BotonIcono, Campo, Cargando, Celda, CeldaAcciones, Checkbox, Encabezado, errorDeCampo, Fila,
   Input, Insignia, MensajeError, Modal, nulo, numeroONulo, PieFormulario, Select, Tabla, Tarjeta, useConfirmar, Vacio,
 } from '../components/ui'
+import { FormHorario } from '../components/FormHorario'
 import { SiPuede } from '../sesion/Sesion'
 
 export default function Empleados() {
   const confirmar = useConfirmar()
   const [inactivos, setInactivos] = useState(false)
   const [editando, setEditando] = useState<Empleado | 'nuevo' | null>(null)
+  const [horario, setHorario] = useState<Empleado | null>(null)
   const { data, isLoading, error } = useEmpleados(inactivos)
   const desactivar = useDesactivarEmpleado()
 
@@ -44,6 +46,7 @@ export default function Empleados() {
               <Celda className="text-slate-600">{e.unidadNegocio ?? '—'}</Celda>
               <Celda className="text-slate-600"><p>{e.correo ?? '—'}</p><p className="text-xs text-slate-500">{e.telefono}</p></Celda>
               <CeldaAcciones>
+                <SiPuede permiso="empleados.ver"><BotonIcono icono="reloj" etiqueta="Horario" onClick={() => setHorario(e)} /></SiPuede>
                 <SiPuede permiso="empleados.editar"><BotonIcono icono="editar" etiqueta="Editar" onClick={() => setEditando(e)} /></SiPuede>
                 {e.activo && <SiPuede permiso="empleados.eliminar"><BotonIcono icono="basura" etiqueta="Dar de baja" peligro onClick={() => darDeBaja(e)} /></SiPuede>}
               </CeldaAcciones>
@@ -53,6 +56,7 @@ export default function Empleados() {
       )}
 
       {editando && <FormEmpleado empleado={editando === 'nuevo' ? undefined : editando} onCerrar={() => setEditando(null)} />}
+      {horario && <FormHorario empleado={horario} onCerrar={() => setHorario(null)} />}
     </>
   )
 }

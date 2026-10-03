@@ -67,6 +67,7 @@ public class ClienteConfig : IEntityTypeConfiguration<Cliente>
         b.Property(x => x.Telefono).HasMaxLength(20);
         b.Property(x => x.Correo).HasMaxLength(150);
         b.Property(x => x.Direccion).HasMaxLength(500);
+        b.HasOne(x => x.ListaPrecios).WithMany().HasForeignKey(x => x.ListaPreciosId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(x => new { x.CuentaId, x.Rfc }).IsUnique().HasFilter("[Rfc] IS NOT NULL");
     }
 }
@@ -80,6 +81,9 @@ public class ProductoConfig : IEntityTypeConfiguration<Producto>
         b.Property(x => x.Nombre).HasMaxLength(150).IsRequired();
         b.Property(x => x.Descripcion).HasMaxLength(1000);
         b.Property(x => x.Tipo).HasConversion<string>().HasMaxLength(20);
+        b.Property(x => x.Costo).HasPrecision(18, 4);
+        b.Property(x => x.StockMinimo).HasPrecision(18, 4);
+        b.HasOne(x => x.Proveedor).WithMany().HasForeignKey(x => x.ProveedorId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(x => new { x.CuentaId, x.Codigo }).IsUnique();
     }
 }

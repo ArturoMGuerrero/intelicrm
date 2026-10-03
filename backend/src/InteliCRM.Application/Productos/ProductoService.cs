@@ -8,10 +8,11 @@ using Microsoft.EntityFrameworkCore;
 namespace InteliCRM.Application.Productos;
 
 public record ProductoDto(
-    int Id, string Codigo, string Nombre, string? Descripcion, TipoProducto Tipo, decimal Precio, bool Activo)
+    int Id, string Codigo, string Nombre, string? Descripcion, TipoProducto Tipo, decimal Precio,
+    decimal Costo, decimal? StockMinimo, int? ProveedorId, string? Proveedor, bool Activo)
 {
     public static ProductoDto Desde(Producto p) =>
-        new(p.Id, p.Codigo, p.Nombre, p.Descripcion, p.Tipo, p.Precio, p.Activo);
+        new(p.Id, p.Codigo, p.Nombre, p.Descripcion, p.Tipo, p.Precio, p.Costo, p.StockMinimo, p.ProveedorId, p.Proveedor?.RazonSocial, p.Activo);
 }
 
 public class GuardarProductoRequest
@@ -31,6 +32,15 @@ public class GuardarProductoRequest
     [Range(0, 100_000_000)]
     public decimal Precio { get; set; }
 
+    [Range(0, 100_000_000)]
+    public decimal Costo { get; set; }
+
+    /// <summary>Solo aplica a productos (no a servicios).</summary>
+    [Range(0, 100_000_000)]
+    public decimal? StockMinimo { get; set; }
+
+    public int? ProveedorId { get; set; }
+
     public bool Activo { get; set; } = true;
 }
 
@@ -38,7 +48,7 @@ public class ProductoService(IAppDbContext db)
 {
     public async Task<List<ProductoDto>> ListarAsync(string? buscar, bool incluirInactivos, CancellationToken ct)
     {
-        var query = db.Productos.AsNoTracking().Where(p => incluirInactivos || p.Activo);
+        var query = db.Productos.AsNoTracking().Include(p => p.Proveedor).Where(p => incluirInactivos || p.Activo);
 
         if (!string.IsNullOrWhiteSpace(buscar))
         {
@@ -51,25 +61,26 @@ public class ProductoService(IAppDbContext db)
     }
 
     public async Task<ProductoDto> ObtenerAsync(int id, CancellationToken ct) =>
-        ProductoDto.Desde(await BuscarAsync(id, ct));
+        ProductoDto.Desde(await db.Productos.AsNoTracking().Include(p => p.Proveedor).FirstOrDefaultAsync(p => p.Id == id, ct)
+                          ?? throw new NoEncontradoException("Producto", id));
 
     public async Task<ProductoDto> CrearAsync(GuardarProductoRequest req, CancellationToken ct)
     {
-        await ValidarCodigoUnicoAsync(req.Codigo, null, ct);
+        await ValidarAsync(req, null, ct);
         var producto = new Producto();
         Aplicar(producto, req);
         db.Productos.Add(producto);
         await db.SaveChangesAsync(ct);
-        return ProductoDto.Desde(producto);
+        return await ObtenerAsync(producto.Id, ct);
     }
 
     public async Task<ProductoDto> ActualizarAsync(int id, GuardarProductoRequest req, CancellationToken ct)
     {
         var producto = await BuscarAsync(id, ct);
-        await ValidarCodigoUnicoAsync(req.Codigo, id, ct);
+        await ValidarAsync(req, id, ct);
         Aplicar(producto, req);
         await db.SaveChangesAsync(ct);
-        return ProductoDto.Desde(producto);
+        return await ObtenerAsync(producto.Id, ct);
     }
 
     public async Task DesactivarAsync(int id, CancellationToken ct)
@@ -83,9 +94,11 @@ public class ProductoService(IAppDbContext db)
         await db.Productos.FirstOrDefaultAsync(p => p.Id == id, ct)
         ?? throw new NoEncontradoException("Producto", id);
 
-    private async Task ValidarCodigoUnicoAsync(string codigo, int? excluirId, CancellationToken ct)
+    private async Task ValidarAsync(GuardarProductoRequest req, int? excluirId, CancellationToken ct)
     {
-        var normalizado = codigo.Trim().ToUpper();
+        if (req.ProveedorId is { } provId && !await db.Proveedores.AnyAsync(p => p.Id == provId, ct))
+            throw new NoEncontradoException("Proveedor", provId);
+        var normalizado = req.Codigo.Trim().ToUpper();
         if (await db.Productos.AnyAsync(p => p.Codigo == normalizado && p.Id != excluirId, ct))
             throw new ReglaNegocioException($"Ya existe un producto con el código {normalizado}.");
     }
@@ -97,6 +110,10 @@ public class ProductoService(IAppDbContext db)
         p.Descripcion = req.Descripcion?.Trim();
         p.Tipo = req.Tipo;
         p.Precio = req.Precio;
+        p.Costo = req.Costo;
+        // Los servicios no llevan inventario.
+        p.StockMinimo = req.Tipo == TipoProducto.Producto ? req.StockMinimo : null;
+        p.ProveedorId = req.ProveedorId;
         p.Activo = req.Activo;
     }
 }

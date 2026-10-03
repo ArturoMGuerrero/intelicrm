@@ -30,6 +30,18 @@ public interface IAppDbContext
     DbSet<PagoCargo> PagosCargo { get; }
     DbSet<CuentaPorPagar> CuentasPorPagar { get; }
     DbSet<PagoProveedor> PagosProveedor { get; }
+    DbSet<ConfiguracionEmpresa> ConfiguracionesEmpresa { get; }
+    DbSet<HorarioEmpleado> HorariosEmpleado { get; }
+    DbSet<ListaPrecios> ListasPrecios { get; }
+    DbSet<PrecioLista> PreciosLista { get; }
+    DbSet<Existencia> Existencias { get; }
+    DbSet<MovimientoInventario> MovimientosInventario { get; }
+    DbSet<OrdenCompra> OrdenesCompra { get; }
+    DbSet<PlantillaMensaje> PlantillasMensaje { get; }
+    DbSet<MensajeEnviado> MensajesEnviados { get; }
+    DbSet<Promocion> Promociones { get; }
+    DbSet<Formato> Formatos { get; }
+    DbSet<TicketSoporte> TicketsSoporte { get; }
 
     // Seguridad
     DbSet<Cuenta> Cuentas { get; }

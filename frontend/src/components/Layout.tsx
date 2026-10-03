@@ -28,11 +28,19 @@ const secciones: { titulo: string; enlaces: Enlace[] }[] = [
     ],
   },
   {
+    titulo: 'Compras e inventario',
+    enlaces: [
+      { a: '/compras', texto: 'Órdenes de compra', icono: 'carrito', color: 'turquesa', permiso: 'compras.ver' },
+      { a: '/inventario', texto: 'Inventario', icono: 'productos', color: 'indigo', permiso: 'inventario.ver' },
+    ],
+  },
+  {
     titulo: 'Catálogos',
     enlaces: [
       { a: '/clientes', texto: 'Clientes', icono: 'clientes', color: 'esmeralda', permiso: 'clientes.ver' },
       { a: '/proveedores', texto: 'Proveedores', icono: 'proveedores', color: 'ambar', permiso: 'proveedores.ver' },
       { a: '/productos', texto: 'Productos y servicios', icono: 'productos', color: 'turquesa', permiso: 'productos.ver' },
+      { a: '/listas-precios', texto: 'Listas de precios', icono: 'etiqueta', color: 'ambar', permiso: 'listas-precios.ver' },
       { a: '/empleados', texto: 'Empleados', icono: 'empleados', color: 'indigo', permiso: 'empleados.ver' },
       { a: '/catalogos/acciones-actividades', texto: 'Acciones y actividades', icono: 'rayo', color: 'pizarra', permiso: 'catalogos.ver' },
       { a: '/catalogos/descripciones-servicio', texto: 'Descripción de servicios', icono: 'brillo', color: 'turquesa', permiso: 'catalogos.ver' },
@@ -43,6 +51,7 @@ const secciones: { titulo: string; enlaces: Enlace[] }[] = [
   {
     titulo: 'Parametrización',
     enlaces: [
+      { a: '/empresa', texto: 'Mi empresa', icono: 'edificio', color: 'indigo' },
       { a: '/catalogos/instrumentos-pago', texto: 'Instrumentos de pago', icono: 'pago', color: 'esmeralda', permiso: 'catalogos.ver' },
       { a: '/catalogos/condiciones-pago', texto: 'Condiciones de pago', icono: 'reloj', color: 'ambar', permiso: 'catalogos.ver' },
       { a: '/catalogos/tipos-contacto', texto: 'Tipos de contacto', icono: 'telefono', color: 'cielo', permiso: 'catalogos.ver' },
@@ -50,10 +59,19 @@ const secciones: { titulo: string; enlaces: Enlace[] }[] = [
     ],
   },
   {
+    titulo: 'Comunicación',
+    enlaces: [
+      { a: '/mensajes', texto: 'Mensajes', icono: 'mensaje', color: 'cielo', permiso: 'mensajes.ver' },
+      { a: '/promociones', texto: 'Promociones', icono: 'megafono', color: 'esmeralda', permiso: 'promociones.ver' },
+      { a: '/formatos', texto: 'Formatos', icono: 'documento', color: 'pizarra', permiso: 'formatos.ver' },
+    ],
+  },
+  {
     titulo: 'Seguridad',
     enlaces: [
       { a: '/usuarios', texto: 'Usuarios', icono: 'usuarios', color: 'pizarra', permiso: 'usuarios.ver' },
       { a: '/roles', texto: 'Roles y permisos', icono: 'escudo', color: 'indigo', permiso: 'roles.ver' },
+      { a: '/soporte', texto: 'Soporte', icono: 'ayuda', color: 'pizarra' },
     ],
   },
 ]

@@ -37,6 +37,18 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IUsuarioActual
     public DbSet<PagoCargo> PagosCargo => Set<PagoCargo>();
     public DbSet<CuentaPorPagar> CuentasPorPagar => Set<CuentaPorPagar>();
     public DbSet<PagoProveedor> PagosProveedor => Set<PagoProveedor>();
+    public DbSet<ConfiguracionEmpresa> ConfiguracionesEmpresa => Set<ConfiguracionEmpresa>();
+    public DbSet<HorarioEmpleado> HorariosEmpleado => Set<HorarioEmpleado>();
+    public DbSet<ListaPrecios> ListasPrecios => Set<ListaPrecios>();
+    public DbSet<PrecioLista> PreciosLista => Set<PrecioLista>();
+    public DbSet<Existencia> Existencias => Set<Existencia>();
+    public DbSet<MovimientoInventario> MovimientosInventario => Set<MovimientoInventario>();
+    public DbSet<OrdenCompra> OrdenesCompra => Set<OrdenCompra>();
+    public DbSet<PlantillaMensaje> PlantillasMensaje => Set<PlantillaMensaje>();
+    public DbSet<MensajeEnviado> MensajesEnviados => Set<MensajeEnviado>();
+    public DbSet<Promocion> Promociones => Set<Promocion>();
+    public DbSet<Formato> Formatos => Set<Formato>();
+    public DbSet<TicketSoporte> TicketsSoporte => Set<TicketSoporte>();
     public DbSet<Cuenta> Cuentas => Set<Cuenta>();
     public DbSet<Rol> Roles => Set<Rol>();
 

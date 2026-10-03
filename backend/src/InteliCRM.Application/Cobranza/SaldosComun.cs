@@ -116,7 +116,7 @@ internal static class Saldos
             throw new ReglaNegocioException($"El documento {documento.Folio} ya está liquidado.");
         if (req.Monto > documento.Saldo)
             throw new ReglaNegocioException(
-                $"El pago ({Common.Formato.Moneda(req.Monto)}) es mayor que el saldo pendiente ({Common.Formato.Moneda(documento.Saldo)}).");
+                $"El pago ({Common.FormatoTexto.Moneda(req.Monto)}) es mayor que el saldo pendiente ({Common.FormatoTexto.Moneda(documento.Saldo)}).");
 
         var fecha = req.Fecha ?? Hoy;
         if (fecha < documento.Fecha)

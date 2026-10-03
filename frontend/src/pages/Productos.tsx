@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useDesactivarProducto, useGuardarProducto, useProductos } from '../api/hooks'
+import { useDesactivarProducto, useGuardarProducto, useProductos, useProveedores } from '../api/hooks'
 import type { Producto, TipoProducto } from '../api/tipos'
 import {
   BarraFiltros, Boton, BotonIcono, Buscador, Campo, Cargando, Celda, CeldaAcciones, Checkbox, Doble, Encabezado,
@@ -58,10 +58,12 @@ export default function Productos() {
 
 function FormProducto({ producto, onCerrar }: { producto?: Producto; onCerrar: () => void }) {
   const guardar = useGuardarProducto()
+  const proveedores = useProveedores().data ?? []
   const [f, setF] = useState({
     codigo: producto?.codigo ?? '', nombre: producto?.nombre ?? '', descripcion: producto?.descripcion ?? '',
     tipo: producto?.tipo ?? ('Producto' as TipoProducto), precio: producto?.precio.toString() ?? '',
-    activo: producto?.activo ?? true,
+    costo: producto?.costo.toString() ?? '0', stockMinimo: producto?.stockMinimo?.toString() ?? '',
+    proveedorId: producto?.proveedorId?.toString() ?? '', activo: producto?.activo ?? true,
   })
   const cambiar = (campo: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [campo]: e.target.value })
   const err = (c: string) => errorDeCampo(guardar.error, c)
@@ -70,7 +72,11 @@ function FormProducto({ producto, onCerrar }: { producto?: Producto; onCerrar: (
     e.preventDefault()
     guardar.mutate({
       id: producto?.id,
-      datos: { codigo: f.codigo, nombre: f.nombre, descripcion: nulo(f.descripcion), tipo: f.tipo, precio: Number(f.precio), activo: f.activo },
+      datos: {
+        codigo: f.codigo, nombre: f.nombre, descripcion: nulo(f.descripcion), tipo: f.tipo, precio: Number(f.precio),
+        costo: Number(f.costo) || 0, stockMinimo: f.tipo === 'Producto' && f.stockMinimo !== '' ? Number(f.stockMinimo) : null,
+        proveedorId: f.proveedorId ? Number(f.proveedorId) : null, activo: f.activo,
+      },
     }, { onSuccess: onCerrar })
   }
 
@@ -90,6 +96,20 @@ function FormProducto({ producto, onCerrar }: { producto?: Producto; onCerrar: (
         </Campo>
         <Campo etiqueta="Precio (MXN, sin IVA) *" error={err('precio')}>
           <Input type="number" min="0" step="0.01" value={f.precio} onChange={cambiar('precio')} required />
+        </Campo>
+        <Campo etiqueta="Costo (último de compra)" error={err('costo')}>
+          <Input type="number" min="0" step="0.01" value={f.costo} onChange={cambiar('costo')} />
+        </Campo>
+        {f.tipo === 'Producto' && (
+          <Campo etiqueta="Stock mínimo" ayuda="Debajo de esto aparece en Pedido de faltantes." error={err('stockMinimo')}>
+            <Input type="number" min="0" step="1" value={f.stockMinimo} onChange={cambiar('stockMinimo')} />
+          </Campo>
+        )}
+        <Campo etiqueta="Proveedor habitual" className={f.tipo === 'Producto' ? '' : 'sm:col-span-2'}>
+          <Select value={f.proveedorId} onChange={cambiar('proveedorId')}>
+            <option value="">—</option>
+            {proveedores.map((p) => <option key={p.id} value={p.id}>{p.razonSocial}</option>)}
+          </Select>
         </Campo>
         <Campo etiqueta="Descripción" className="sm:col-span-2">
           <Textarea rows={2} value={f.descripcion} onChange={cambiar('descripcion')} />
