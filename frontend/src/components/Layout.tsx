@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router'
 import { useCambiarMiPassword } from '../api/hooks'
 import { useSesion } from '../sesion/Sesion'
 import {
-  acentos, BotonIcono, Campo, cn, ContextoAcento, errorDeCampo, Icono, Input, Modal, PieFormulario,
+  BotonIcono, Campo, cn, ContextoAcento, errorDeCampo, Icono, Input, Modal, PieFormulario,
   type ColorAcento, type NombreIcono,
 } from './ui'
 
@@ -85,72 +85,144 @@ function enlaceDeRuta(pathname: string) {
     .sort((x, y) => y.a.length - x.a.length)[0]
 }
 
-function Navegacion({ onNavegar }: { onNavegar?: () => void }) {
+/** Preferencias del menú guardadas en el navegador (si no hay almacenamiento, se usan los valores por omisión). */
+function leerPreferencia<T>(clave: string, porOmision: T): T {
+  try {
+    const valor = localStorage.getItem(clave)
+    return valor ? (JSON.parse(valor) as T) : porOmision
+  } catch {
+    return porOmision
+  }
+}
+function guardarPreferencia(clave: string, valor: unknown) {
+  try { localStorage.setItem(clave, JSON.stringify(valor)) } catch { /* sin almacenamiento */ }
+}
+
+const sinAcentos = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
+function Navegacion({ onNavegar, compacto = false }: { onNavegar?: () => void; compacto?: boolean }) {
   const { puede } = useSesion()
+  const { pathname } = useLocation()
+  const [buscar, setBuscar] = useState('')
+  const [cerradas, setCerradas] = useState<string[]>(() => leerPreferencia('menu.seccionesCerradas', []))
+  const texto = sinAcentos(buscar.trim())
+  const seccionActual = secciones.find((s) => s.enlaces.includes(enlaceDeRuta(pathname)!))?.titulo
+
+  const alternar = (titulo: string) => {
+    const nuevas = cerradas.includes(titulo) ? cerradas.filter((t) => t !== titulo) : [...cerradas, titulo]
+    setCerradas(nuevas)
+    guardarPreferencia('menu.seccionesCerradas', nuevas)
+  }
+
+  const grupos = secciones
+    .map((s) => ({
+      ...s,
+      visibles: s.enlaces.filter((e) => (!e.permiso || puede(e.permiso)) && (!texto || sinAcentos(e.texto).includes(texto))),
+    }))
+    .filter((s) => s.visibles.length > 0)
+
   return (
-    <nav className="space-y-6 px-3 py-4">
-      {secciones.map((s) => {
-        const visibles = s.enlaces.filter((e) => !e.permiso || puede(e.permiso))
-        if (visibles.length === 0) return null
-        return (
-          <div key={s.titulo}>
-            <p className="px-3 pb-2 text-[11px] font-semibold tracking-widest text-slate-500 uppercase">{s.titulo}</p>
-            <ul className="space-y-0.5">
-              {visibles.map((e) => (
-                <li key={e.a}>
-                  <NavLink to={e.a} end={e.a === '/'} onClick={onNavegar}
-                    className={({ isActive }) => cn(
-                      'group flex items-center gap-3 rounded-xl px-2.5 py-1.5 text-sm font-medium transition-all',
-                      isActive
-                        ? 'bg-white/10 text-white'
-                        : 'text-slate-300 hover:bg-white/5 hover:text-white')}>
-                    {({ isActive }) => (
-                      <>
-                        <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all',
-                          isActive ? acentos[e.color].menuActivo : acentos[e.color].menu)}>
-                          <Icono nombre={e.icono} className="h-4 w-4" />
-                        </span>
-                        {e.texto}
-                      </>
-                    )}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )
-      })}
+    <nav className={cn('py-4', compacto ? 'px-2' : 'px-3')}>
+      {!compacto && (
+        <div className="relative mb-4">
+          <Icono nombre="buscar" className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-500" />
+          <input type="search" value={buscar} onChange={(e) => setBuscar(e.target.value)} placeholder="Buscar en el menú…"
+            className="w-full rounded-lg border border-white/10 bg-tinta-900 py-1.5 pr-3 pl-9 text-sm text-slate-200 placeholder:text-slate-500 focus:border-marca-400/60 focus:bg-white/10 focus:outline-none" />
+        </div>
+      )}
+      {grupos.length === 0 && <p className="px-3 text-sm text-slate-500">Sin resultados.</p>}
+
+      <div className={compacto ? 'space-y-3' : 'space-y-4'}>
+        {grupos.map((s) => {
+          // Al buscar, o si contiene la página actual, la sección se muestra abierta.
+          const abierta = compacto || !!texto || s.titulo === seccionActual || !cerradas.includes(s.titulo)
+          return (
+            <div key={s.titulo}>
+              {compacto ? (
+                <div className="mx-3 mb-3 border-t border-white/10 first:hidden" />
+              ) : (
+                <button type="button" onClick={() => alternar(s.titulo)} aria-expanded={abierta}
+                  className="flex w-full items-center justify-between rounded-md px-3 pb-1.5 text-[11px] font-semibold tracking-widest text-slate-500 uppercase transition-colors hover:text-slate-300">
+                  {s.titulo}
+                  <Icono nombre="abajo" className={cn('h-3.5 w-3.5 transition-transform', !abierta && '-rotate-90')} />
+                </button>
+              )}
+              {abierta && (
+                <ul className="space-y-0.5">
+                  {s.visibles.map((e) => (
+                    <li key={e.a}>
+                      <NavLink to={e.a} end={e.a === '/'} onClick={onNavegar} title={compacto ? e.texto : undefined}
+                        className={({ isActive }) => cn(
+                          'group relative flex items-center gap-3 rounded-lg py-1.5 text-sm font-medium transition-colors',
+                          compacto ? 'justify-center px-0' : 'px-2.5',
+                          isActive
+                            ? 'bg-tinta-800 text-white shadow-sm ring-1 ring-white/5'
+                            : 'text-slate-400 hover:bg-white/5 hover:text-slate-100')}>
+                        {({ isActive }) => (
+                          <>
+                            {isActive && <span className={cn('absolute top-1.5 bottom-1.5 -left-3 w-1 rounded-r-full', compacto && '-left-2', 'bg-marca-400')} />}
+                            <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors',
+                              isActive ? 'bg-marca-400/15 text-marca-400' : 'text-slate-500 group-hover:text-slate-300')}>
+                              <Icono nombre={e.icono} className="h-4 w-4" />
+                            </span>
+                            {!compacto && <span className="truncate">{e.texto}</span>}
+                          </>
+                        )}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )
+        })}
+      </div>
     </nav>
   )
 }
 
-function Marca({ clara = false }: { clara?: boolean }) {
+function Marca({ clara = false, compacta = false }: { clara?: boolean; compacta?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-marca-600 text-sm font-bold text-white">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-marca-400 text-sm font-bold text-tinta-950 shadow-md shadow-marca-400/20">
         iC
       </div>
-      <span className={cn('text-lg font-bold tracking-tight', clara ? 'text-white' : 'text-slate-900')}>
-        Inteli<span className={clara ? 'text-marca-300' : 'text-marca-600'}>CRM</span>
-      </span>
+      {!compacta && (
+        <span className={cn('text-lg font-bold tracking-tight', clara ? 'text-white' : 'text-slate-900')}>
+          Inteli<span className={clara ? 'text-marca-400' : 'text-marca-700'}>CRM</span>
+        </span>
+      )}
     </div>
   )
 }
 
-/** Fondo del menú lateral: gris pizarra oscuro. */
-const fondoMenu = 'bg-gradient-to-b from-slate-900 to-slate-950'
+/** Fondo del menú lateral: casi negro (#101114); el elemento activo usa grafito (#292D33). */
+const fondoMenu = 'bg-tinta-950'
 const botonMenu = 'text-slate-400 hover:bg-white/10 hover:text-white'
 
 /** Tarjeta del usuario con sesión: nombre, empresa, rol y acciones. */
-function PanelUsuario({ onCambiarPassword }: { onCambiarPassword: () => void }) {
+function PanelUsuario({ onCambiarPassword, compacto = false }: { onCambiarPassword: () => void; compacto?: boolean }) {
   const { usuario, cerrarSesion } = useSesion()
   if (!usuario) return null
   const iniciales = usuario.nombre.split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase()
 
+  if (compacto) {
+    return (
+      <div className="flex flex-col items-center gap-1 border-t border-white/10 p-2">
+        <span title={`${usuario.nombre} · ${usuario.cuenta} · ${usuario.rol}`}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-marca-400/15 text-sm font-semibold text-marca-300">
+          {iniciales}
+        </span>
+        <BotonIcono icono="llave" etiqueta="Cambiar contraseña" onClick={onCambiarPassword} className={botonMenu} />
+        <BotonIcono icono="salir" etiqueta="Cerrar sesión" onClick={cerrarSesion} className={botonMenu} />
+      </div>
+    )
+  }
+
   return (
-    <div className="p-3">
-      <div className="flex items-center gap-3 rounded-xl bg-white/5 px-2.5 py-2.5">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-marca-500/30 text-sm font-semibold text-marca-100">
+    <div className="border-t border-white/10 p-3">
+      <div className="flex items-center gap-3 rounded-xl bg-tinta-900 px-2.5 py-2.5 ring-1 ring-white/5">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-marca-400/15 text-sm font-semibold text-marca-300">
           {iniciales}
         </span>
         <div className="min-w-0 flex-1">
@@ -198,16 +270,30 @@ function FormCambiarPassword({ onCerrar }: { onCerrar: () => void }) {
 export default function Layout() {
   const [menuAbierto, setMenuAbierto] = useState(false)
   const [cambiandoPassword, setCambiandoPassword] = useState(false)
+  const [compacto, setCompacto] = useState(() => leerPreferencia('menu.compacto', false))
   const { pathname } = useLocation()
   const actual = enlaceDeRuta(pathname)
 
+  const alternarCompacto = () => {
+    setCompacto(!compacto)
+    guardarPreferencia('menu.compacto', !compacto)
+  }
+
   return (
-    <div className="min-h-screen lg:pl-64">
-      {/* Menú lateral fijo (escritorio) */}
-      <aside className={cn('fixed inset-y-0 left-0 hidden w-64 flex-col lg:flex', fondoMenu)}>
-        <div className="flex h-16 items-center border-b border-white/10 px-5"><Marca clara /></div>
-        <div className="menu-scroll flex-1 overflow-y-auto"><Navegacion /></div>
-        <PanelUsuario onCambiarPassword={() => setCambiandoPassword(true)} />
+    <div className={cn('min-h-screen transition-[padding]', compacto ? 'lg:pl-20' : 'lg:pl-64')}>
+      {/* Menú lateral fijo (escritorio); se puede contraer a solo iconos */}
+      <aside className={cn('fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-white/5 shadow-xl transition-[width] lg:flex', fondoMenu, compacto ? 'w-20' : 'w-64')}>
+        <div className={cn('flex h-16 shrink-0 items-center border-b border-white/10', compacto ? 'justify-center' : 'justify-between pr-3 pl-5')}>
+          <Marca clara compacta={compacto} />
+          {!compacto && <BotonIcono icono="izquierda" etiqueta="Contraer menú" onClick={alternarCompacto} className={botonMenu} />}
+        </div>
+        {compacto && (
+          <div className="flex justify-center pt-3">
+            <BotonIcono icono="derecha" etiqueta="Expandir menú" onClick={alternarCompacto} className={botonMenu} />
+          </div>
+        )}
+        <div className="menu-scroll flex-1 overflow-y-auto"><Navegacion compacto={compacto} /></div>
+        <PanelUsuario compacto={compacto} onCambiarPassword={() => setCambiandoPassword(true)} />
       </aside>
 
       {/* Barra superior + menú desplegable (móvil) */}
@@ -230,7 +316,7 @@ export default function Layout() {
       )}
 
       <ContextoAcento.Provider value={actual ? { color: actual.color, icono: actual.icono } : null}>
-        <main key={pathname} className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <main key={pathname} className="w-full px-4 py-6 sm:px-6 lg:px-8 lg:py-8 2xl:px-10">
           <Outlet />
         </main>
       </ContextoAcento.Provider>

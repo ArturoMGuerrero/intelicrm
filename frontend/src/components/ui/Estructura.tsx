@@ -117,7 +117,7 @@ export function Segmentos<T extends string>({ opciones, valor, onCambiar, etique
       {opciones.map((o) => (
         <button key={o.valor} type="button" role="tab" aria-selected={valor === o.valor} onClick={() => onCambiar(o.valor)}
           className={cn('rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-            valor === o.valor ? 'bg-marca-600 text-white shadow-sm' : 'text-slate-600 hover:bg-marca-50 hover:text-marca-700')}>
+            valor === o.valor ? 'bg-tinta-950 text-marca-400 shadow-sm' : 'text-slate-600 hover:bg-marca-50 hover:text-marca-800')}>
           {o.texto}
         </button>
       ))}
@@ -134,7 +134,7 @@ export function FiltroChips<T extends string>({ opciones, valor, onCambiar }: {
       {opciones.map((o) => (
         <button key={o.valor || 'todos'} type="button" aria-pressed={valor === o.valor} onClick={() => onCambiar(o.valor)}
           className={cn('rounded-full px-3 py-1 text-sm font-medium transition-colors',
-            valor === o.valor ? 'bg-marca-600 text-white shadow-sm' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-marca-50 hover:text-marca-700 hover:ring-marca-200')}>
+            valor === o.valor ? 'bg-tinta-950 text-marca-400 shadow-sm' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-marca-50 hover:text-marca-800 hover:ring-marca-200')}>
           {o.texto}
         </button>
       ))}

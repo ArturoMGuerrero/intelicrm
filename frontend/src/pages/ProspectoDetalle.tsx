@@ -85,7 +85,7 @@ export default function ProspectoDetalle() {
               <button type="button" disabled={!puedeEditar || cambiarEtapa.isPending || e === p.etapa}
                 onClick={() => cambiarEtapa.mutate({ id: p.id, etapa: e })}
                 className={cn('rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
-                  e === p.etapa ? 'bg-marca-600 text-white' : 'text-slate-600 enabled:hover:bg-slate-100 disabled:cursor-default')}>
+                  e === p.etapa ? 'bg-tinta-950 text-marca-400' : 'text-slate-600 enabled:hover:bg-slate-100 disabled:cursor-default')}>
                 {etiquetaEtapa[e]}
               </button>
             </li>
@@ -217,7 +217,7 @@ function CotizacionesProspecto({ prospectoId }: { prospectoId: number }) {
         <ul className="space-y-2">
           {data.map((c) => (
             <li key={c.id} className="flex items-center justify-between gap-2 text-sm">
-              <Link to={`/cotizaciones/${c.id}`} className="font-medium text-marca-600 hover:underline">{c.folio}</Link>
+              <Link to={`/cotizaciones/${c.id}`} className="font-medium text-marca-700 hover:underline">{c.folio}</Link>
               <span className="text-slate-700 tabular-nums">{formatoMoneda(c.total)}</span>
               <Insignia tono={tonoEstatusCotizacion[c.estatus]}>{c.estatus}</Insignia>
             </li>

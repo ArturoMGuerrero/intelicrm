@@ -82,7 +82,7 @@ export default function CargoDetalle() {
           <Tarjeta titulo="Datos">
             <ListaDatos datos={[
               ['Cliente / prospecto', cargo.prospectoId
-                ? <Link to={`/prospectos/${cargo.prospectoId}`} className="text-marca-600 hover:underline">{cargo.destinatario}</Link>
+                ? <Link to={`/prospectos/${cargo.prospectoId}`} className="text-marca-700 hover:underline">{cargo.destinatario}</Link>
                 : cargo.destinatario],
               ['Fecha', formatoFecha(cargo.fecha)],
               ['Vence', `${formatoFecha(cargo.fechaVencimiento)} (${cargo.diasCredito ? `${cargo.diasCredito} días` : 'contado'})`],
@@ -90,7 +90,7 @@ export default function CargoDetalle() {
               ['Vendedor', cargo.empleado ?? '—'],
               ['Almacén', cargo.almacen ?? 'No mueve inventario'],
               ['Cotización', cargo.cotizacionId
-                ? <Link to={`/cotizaciones/${cargo.cotizacionId}`} className="text-marca-600 hover:underline">{cargo.cotizacion}</Link>
+                ? <Link to={`/cotizaciones/${cargo.cotizacionId}`} className="text-marca-700 hover:underline">{cargo.cotizacion}</Link>
                 : '—'],
               ['Notas', cargo.notas ?? '—'],
             ]} />

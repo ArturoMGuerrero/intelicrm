@@ -142,7 +142,7 @@ function FormRol({ rol, modulos, onCerrar }: { rol?: Rol; modulos: ModuloPermiso
                   {modulos.filter((m) => m.grupo === g).map((m) => (
                     <tr key={m.clave} className="border-t border-slate-100 hover:bg-slate-50">
                       <td className="px-4 py-2">
-                        <button type="button" onClick={() => alternarModulo(m)} className="text-left text-slate-800 hover:text-marca-700" title="Marcar o desmarcar todo el módulo">
+                        <button type="button" onClick={() => alternarModulo(m)} className="text-left text-slate-800 hover:text-marca-800" title="Marcar o desmarcar todo el módulo">
                           {m.nombre}
                         </button>
                       </td>

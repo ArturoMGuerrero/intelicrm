@@ -28,18 +28,18 @@ export default function Login() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-marca-900 p-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-tinta-950 via-tinta-900 to-tinta-800 p-4">
       {/* Manchas de color decorativas */}
-      <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-marca-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute -right-24 -bottom-32 h-96 w-96 rounded-full bg-sky-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-marca-400/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 -bottom-32 h-96 w-96 rounded-full bg-marca-400/5 blur-3xl" />
 
       <div className="relative w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center gap-4 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-marca-600 text-2xl font-bold text-white shadow-lg ring-4 ring-white/10">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-marca-400 text-2xl font-bold text-tinta-950 shadow-lg ring-4 ring-white/10">
             iC
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Inteli<span className="text-marca-300">CRM</span></h1>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Inteli<span className="text-marca-400">CRM</span></h1>
             <p className="mt-1 text-sm text-slate-300">Inicia sesión para continuar</p>
           </div>
         </div>

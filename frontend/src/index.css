@@ -6,26 +6,31 @@
  */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  /* Marca: azul índigo sobrio */
-  --color-marca-50: #eef2ff;
-  --color-marca-100: #e0e7ff;
-  --color-marca-200: #c7d2fe;
-  --color-marca-300: #a5b4fc;
-  --color-marca-400: #818cf8;
-  --color-marca-500: #5b6ee1;
-  --color-marca-600: #4757c9;
-  --color-marca-700: #3b48a8;
-  --color-marca-800: #323c86;
-  --color-marca-900: #2c3469;
+  /* Marca: verde lima tecnológico (#B7F34A). Sobre lima va texto oscuro (tinta); para texto sobre blanco usar 700+. */
+  --color-marca-50: #f6fde8;
+  --color-marca-100: #ebfbc9;
+  --color-marca-200: #dbf89c;
+  --color-marca-300: #c9f56f;
+  --color-marca-400: #b7f34a;
+  --color-marca-500: #9edb2c;
+  --color-marca-600: #65a30d;
+  --color-marca-700: #4d7c0f;
+  --color-marca-800: #3f6212;
+  --color-marca-900: #365314;
+  /* Tinta: casi negro y grafito del menú */
+  --color-tinta-950: #101114;
+  --color-tinta-900: #1a1c20;
+  --color-tinta-800: #292d33;
+  --color-tinta-700: #3a3f47;
 }
 
 @layer base {
   body {
-    @apply min-h-screen bg-slate-50 text-slate-800 antialiased;
+    @apply min-h-screen bg-zinc-50 text-slate-800 antialiased;
     /* Fondo con manchas suaves de color, fijo al hacer scroll. */
     background-image:
-      radial-gradient(at 0% 0%, rgb(71 87 201 / 0.05) 0, transparent 45%),
-      radial-gradient(at 100% 0%, rgb(14 165 233 / 0.04) 0, transparent 40%);
+      radial-gradient(at 0% 0%, rgb(183 243 74 / 0.07) 0, transparent 45%),
+      radial-gradient(at 100% 0%, rgb(41 45 51 / 0.04) 0, transparent 40%);
     background-attachment: fixed;
   }
 }

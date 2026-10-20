@@ -45,7 +45,7 @@ export default function Cotizaciones() {
           }>
           {data.map((c) => (
             <Fila key={c.id} onClick={() => navegar(`/cotizaciones/${c.id}`)}>
-              <Celda className="font-medium text-marca-600">{c.folio}</Celda>
+              <Celda className="font-medium text-marca-700">{c.folio}</Celda>
               <Celda><Doble principal={<span className="font-normal">{c.destinatario}</span>} secundario={c.empleado} /></Celda>
               <Celda className="whitespace-nowrap text-slate-600">{formatoFecha(c.fecha)}</Celda>
               <Celda className="whitespace-nowrap text-slate-600">{formatoFecha(c.fechaVencimiento)}</Celda>
