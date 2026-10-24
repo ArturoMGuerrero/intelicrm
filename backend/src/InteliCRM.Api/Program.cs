@@ -1,3 +1,4 @@
+using InteliCRM.Application.Plataforma;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -26,6 +27,7 @@ builder.Services.AddInfrastructure(
 // Usuario actual (lo leen el DbContext y los servicios para saber la cuenta).
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUsuarioActual, UsuarioActual>();
+builder.Services.AddSingleton<ISuperAdministradores, SuperAdministradores>();
 
 // Envío de correos y SMS (sección "Mensajeria"; sin configuración, el envío es simulado).
 builder.Services.Configure<OpcionesMensajeria>(builder.Configuration.GetSection(OpcionesMensajeria.Seccion));
@@ -74,7 +76,14 @@ builder.Services
                 var usuario = await usuarios.FindByIdAsync(ctx.Principal?.FindFirst(Claims.UsuarioId)?.Value ?? "");
                 var sello = ctx.Principal?.FindFirst(Claims.SelloSeguridad)?.Value;
                 if (usuario is null || !usuario.Activo || usuario.SecurityStamp != sello)
+                {
                     ctx.Fail("La sesión ya no es válida.");
+                    return;
+                }
+                // Una empresa suspendida pierde el acceso de inmediato, no al vencer el token.
+                var db = ctx.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                if (!await db.Cuentas.AsNoTracking().AnyAsync(c => c.Id == usuario.CuentaId && c.Activa))
+                    ctx.Fail("La cuenta de la empresa está suspendida.");
             },
         };
     });
@@ -85,6 +94,8 @@ builder.Services.AddAuthorization(o =>
 {
     // Todo endpoint exige sesión, salvo los marcados con [AllowAnonymous] (login).
     o.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+    // Alta y suspensión de empresas: solo los superadministradores de la configuración.
+    o.AddPolicy(SuperAdministradores.Politica, p => p.RequireAuthenticatedUser().RequireClaim(SuperAdministradores.Claim, "true"));
 });
 
 // Máximo 10 intentos de login por minuto por IP (además del bloqueo por usuario de Identity).

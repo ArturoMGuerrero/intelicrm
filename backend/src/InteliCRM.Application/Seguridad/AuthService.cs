@@ -1,5 +1,6 @@
 using InteliCRM.Application.Common.Exceptions;
 using InteliCRM.Application.Common.Interfaces;
+using InteliCRM.Application.Plataforma;
 using InteliCRM.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ namespace InteliCRM.Application.Seguridad;
 /// <summary>Credenciales incorrectas, usuario inactivo o bloqueado. La API lo convierte en 401.</summary>
 public class CredencialesInvalidasException(string mensaje) : Exception(mensaje);
 
-public class AuthService(IAppDbContext db, UserManager<Usuario> usuarios)
+public class AuthService(IAppDbContext db, UserManager<Usuario> usuarios, ISuperAdministradores superAdministradores)
 {
     // Mismo mensaje para correo inexistente y contraseña incorrecta: no revelar qué correos existen.
     private const string MensajeCredenciales = "Correo o contraseña incorrectos.";
@@ -62,6 +63,7 @@ public class AuthService(IAppDbContext db, UserManager<Usuario> usuarios)
             u.RolId, u.Rol.Nombre, u.Rol.EsAdministrador,
             u.EmpleadoId,
             u.Rol.PermisosEfectivos,
+            superAdministradores.Es(u.Email),
             u.SecurityStamp ?? "");
     }
 

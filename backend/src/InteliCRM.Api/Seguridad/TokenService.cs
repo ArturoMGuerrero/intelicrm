@@ -37,6 +37,8 @@ public class TokenService(OpcionesJwt opciones)
             new(Claims.SelloSeguridad, sesion.SelloSeguridad),
         };
         claims.AddRange(sesion.Permisos.Select(p => new Claim(Claims.Permiso, p)));
+        if (sesion.EsSuperAdministrador)
+            claims.Add(new Claim(SuperAdministradores.Claim, "true"));
 
         var token = new JsonWebTokenHandler().CreateToken(new SecurityTokenDescriptor
         {

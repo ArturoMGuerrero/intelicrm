@@ -1,3 +1,4 @@
+using InteliCRM.Application.Plataforma;
 using InteliCRM.Application.Common.Interfaces;
 using InteliCRM.Application.Seguridad;
 using InteliCRM.Domain.Entities;
@@ -40,6 +41,7 @@ public static class DependencyInjection
 
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<DatosDemo>();
+        services.AddScoped<ICreadorCuentas, CreadorCuentas>();
 
         // Identity: solo el manejo de usuarios (hash de contraseñas, bloqueo, sello de seguridad).
         // La emisión y validación de tokens la hace la API con JWT.

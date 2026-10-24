@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { useCambiarMiPassword } from '../api/hooks'
-import { useSesion } from '../sesion/Sesion'
+import { PERMISO_PLATAFORMA, useSesion } from '../sesion/Sesion'
 import { useTema, type Tema } from '../lib/tema'
 import BarraSuperior from './BarraSuperior'
 import {
@@ -68,6 +68,12 @@ const secciones: { titulo: string; enlaces: Enlace[] }[] = [
       { a: '/mensajes', texto: 'Mensajes', icono: 'mensaje', color: 'cielo', permiso: 'mensajes.ver' },
       { a: '/promociones', texto: 'Promociones', icono: 'megafono', color: 'esmeralda', permiso: 'promociones.ver' },
       { a: '/formatos', texto: 'Formatos', icono: 'documento', color: 'pizarra', permiso: 'formatos.ver' },
+    ],
+  },
+  {
+    titulo: 'Plataforma',
+    enlaces: [
+      { a: '/plataforma/empresas', texto: 'Empresas', icono: 'edificio', color: 'indigo', permiso: PERMISO_PLATAFORMA },
     ],
   },
   {

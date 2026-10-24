@@ -30,10 +30,12 @@ import Prospectos from './pages/Prospectos'
 import Proveedores from './pages/Proveedores'
 import Roles from './pages/Roles'
 import Seguimiento from './pages/Seguimiento'
+import Empresas from './pages/Empresas'
 import Soporte from './pages/Soporte'
 import Sucursales from './pages/Sucursales'
 import Usuarios from './pages/Usuarios'
 import { RequierePermiso, RequiereSesion } from './sesion/Rutas'
+import { PERMISO_PLATAFORMA } from './sesion/Sesion'
 
 const conPermiso = (permiso: string, pagina: ReactNode) => <RequierePermiso permiso={permiso}>{pagina}</RequierePermiso>
 
@@ -67,6 +69,7 @@ export default function App() {
           <Route path="promociones" element={conPermiso('promociones.ver', <Promociones />)} />
           <Route path="formatos" element={conPermiso('formatos.ver', <Formatos />)} />
           <Route path="soporte" element={<Soporte />} />
+          <Route path="plataforma/empresas" element={conPermiso(PERMISO_PLATAFORMA, <Empresas />)} />
           <Route path="clientes" element={conPermiso('clientes.ver', <Clientes />)} />
           <Route path="productos" element={conPermiso('productos.ver', <Productos />)} />
           <Route path="empleados" element={conPermiso('empleados.ver', <Empleados />)} />
