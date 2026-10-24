@@ -18,7 +18,9 @@ public class SuperAdministradores(IConfiguration configuracion) : ISuperAdminist
     private static HashSet<string> Leer(IConfiguration configuracion)
     {
         var seccion = configuracion.GetSection("Plataforma:SuperAdministradores");
-        var valores = seccion.Get<string[]>() ?? (seccion.Value ?? "").Split(',', ';');
+        // Acepta un arreglo ("...:0", "...:1") o un texto con correos separados por coma.
+        var hijos = seccion.GetChildren().Select(h => h.Value ?? "").ToList();
+        var valores = hijos.Count > 0 ? hijos : (seccion.Value ?? "").Split(',', ';').ToList();
         return valores.Select(v => v.Trim()).Where(v => v.Length > 0).ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 }
