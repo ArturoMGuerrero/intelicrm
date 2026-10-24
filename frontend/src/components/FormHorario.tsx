@@ -49,7 +49,7 @@ function Editor({ inicial, empleadoId, onCerrar }: { inicial: BloqueHorario[]; e
             <li key={d.valor} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-start">
               <span className="w-24 pt-2 text-sm font-medium text-slate-700">{d.texto}</span>
               <div className="flex-1 space-y-2">
-                {delDia.length === 0 && <p className="pt-2 text-sm text-slate-400">No trabaja</p>}
+                {delDia.length === 0 && <p className="pt-2 text-sm text-slate-500">No trabaja</p>}
                 {delDia.map(({ b, i }) => (
                   <div key={i} className="flex items-center gap-2">
                     <Input type="time" className="w-32" value={b.horaInicio} aria-label={`${d.texto} desde`}

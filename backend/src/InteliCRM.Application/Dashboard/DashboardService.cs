@@ -39,12 +39,15 @@ public class DashboardService(IAppDbContext db, CitaService citas)
 
         var abiertas = await db.Cotizaciones.AsNoTracking()
             .Where(c => c.Estatus == EstatusCotizacion.Borrador || c.Estatus == EstatusCotizacion.Enviada)
-            .Select(c => c.Total)
+            .Select(c => new { c.Total, c.Moneda, c.TipoCambio })
             .ToListAsync(ct);
 
-        var ganadoMes = await db.Cotizaciones.AsNoTracking()
-            .Where(c => c.Estatus == EstatusCotizacion.Aceptada && c.Fecha >= inicioMes)
-            .SumAsync(c => c.Total, ct);
+        // Las cotizaciones en dólares se suman en pesos con su tipo de cambio.
+        var ganadoMes = (await db.Cotizaciones.AsNoTracking()
+                .Where(c => c.Estatus == EstatusCotizacion.Aceptada && c.Fecha >= inicioMes)
+                .Select(c => new { c.Total, c.Moneda, c.TipoCambio })
+                .ToListAsync(ct))
+            .Sum(c => EnPesos(c.Total, c.Moneda, c.TipoCambio));
 
         var proximas = (await citas.ListarAsync(hoy, hoy.AddDays(7), null, null, ct))
             .Where(c => c.FechaHoraFin >= DateTime.Now
@@ -59,9 +62,12 @@ public class DashboardService(IAppDbContext db, CitaService citas)
                                                      && c.FechaHoraInicio < inicioHoy.AddDays(1)
                                                      && c.Estatus != EstatusCita.Cancelada, ct),
             CotizacionesAbiertas: abiertas.Count,
-            MontoCotizacionesAbiertas: abiertas.Sum(),
+            MontoCotizacionesAbiertas: abiertas.Sum(c => EnPesos(c.Total, c.Moneda, c.TipoCambio)),
             MontoGanadoMes: ganadoMes,
             Embudo: embudo,
             ProximasCitas: proximas);
     }
+
+    private static decimal EnPesos(decimal total, Moneda moneda, decimal? tipoCambio) =>
+        moneda == Moneda.USD ? Math.Round(total * (tipoCambio ?? 1), 2) : total;
 }

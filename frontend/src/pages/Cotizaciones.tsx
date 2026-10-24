@@ -50,7 +50,7 @@ export default function Cotizaciones() {
               <Celda className="whitespace-nowrap text-slate-600">{formatoFecha(c.fecha)}</Celda>
               <Celda className="whitespace-nowrap text-slate-600">{formatoFecha(c.fechaVencimiento)}</Celda>
               <Celda><Insignia tono={tonoEstatusCotizacion[c.estatus]}>{c.estatus}</Insignia></Celda>
-              <Celda derecha className="font-medium tabular-nums">{formatoMoneda(c.total)}</Celda>
+              <Celda derecha className="font-medium tabular-nums">{formatoMoneda(c.total, c.moneda)}</Celda>
             </Fila>
           ))}
         </Tabla>

@@ -117,6 +117,22 @@ npm run dev
 
 El frontend redirige `/api` al backend (ver `frontend/vite.config.ts`).
 
+## Arrancar sin datos de ejemplo
+
+En desarrollo, una base vacía se llena con datos demo (dos empresas, prospectos, ventas...). Para empezar con
+datos reales, crea solo tu empresa y tu usuario administrador (los valores van en *user-secrets*):
+
+```bash
+dotnet user-secrets --project src/InteliCRM.Api set "Arranque:CargarDemo" "false"
+dotnet user-secrets --project src/InteliCRM.Api set "Arranque:Empresa" "Nombre de tu empresa"
+dotnet user-secrets --project src/InteliCRM.Api set "Arranque:Admin:Nombre" "Tu nombre"
+dotnet user-secrets --project src/InteliCRM.Api set "Arranque:Admin:Correo" "tu@correo.com"
+dotnet user-secrets --project src/InteliCRM.Api set "Arranque:Admin:Password" "<contraseña>"
+```
+
+Solo aplica cuando la base está vacía (borra `intelicrm.db*` para empezar de nuevo). Se crean los roles
+Administrador, Gerente comercial y Vendedor, y catálogos mínimos de formas de pago y actividades.
+
 ## Correo y SMS
 
 Sección `Mensajeria` de la configuración. **Sin configurar, los envíos son simulados**: no sale nada, pero quedan

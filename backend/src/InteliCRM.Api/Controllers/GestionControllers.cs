@@ -17,6 +17,21 @@ public class DashboardController(DashboardService servicio) : ControllerBase
     public Task<DashboardDto> Obtener(CancellationToken ct) => servicio.ObtenerAsync(ct);
 }
 
+/// <summary>Barra superior: búsqueda general y avisos, limitados a los módulos que el usuario puede ver.</summary>
+[ApiController]
+[Route("api/barra")]
+public class BarraSuperiorController(BarraSuperiorService servicio) : ControllerBase
+{
+    private bool Puede(string permiso) => User.HasClaim(Claims.Permiso, permiso);
+
+    [HttpGet("buscar")]
+    public Task<List<ResultadoBusquedaDto>> Buscar([FromQuery] string? q, CancellationToken ct) =>
+        servicio.BuscarAsync(q, Puede, ct);
+
+    [HttpGet("avisos")]
+    public Task<List<AvisoDto>> Avisos(CancellationToken ct) => servicio.AvisosAsync(Puede, ct);
+}
+
 [ApiController]
 [Route("api/prospectos")]
 public class ProspectosController(ProspectoService servicio) : ControllerBase
@@ -65,6 +80,29 @@ public class ProspectosController(ProspectoService servicio) : ControllerBase
         servicio.AgregarBitacoraAsync(id, req, ct);
 }
 
+/// <summary>Seguimiento de prospectos: avisos, bitácora del día y prospectos sin seguimiento.</summary>
+[ApiController]
+[Route("api/seguimiento")]
+public class SeguimientoController(ProspectoService servicio) : ControllerBase
+{
+    [HttpGet("avisos"), Permiso("prospectos.ver")]
+    public Task<List<BitacoraDto>> Avisos([FromQuery] int? empleadoId, CancellationToken ct) =>
+        servicio.AvisosAsync(empleadoId, ct);
+
+    [HttpPatch("avisos/{bitacoraId:int}/atendido"), Permiso("prospectos.editar")]
+    public Task<BitacoraDto> AtenderAviso(int bitacoraId, CancellationToken ct) =>
+        servicio.AtenderAvisoAsync(bitacoraId, ct);
+
+    [HttpGet("bitacora-del-dia"), Permiso("prospectos.ver")]
+    public Task<List<BitacoraDto>> BitacoraDelDia([FromQuery] DateOnly? fecha, [FromQuery] int? empleadoId, CancellationToken ct) =>
+        servicio.BitacoraDelDiaAsync(fecha ?? DateOnly.FromDateTime(DateTime.Today), empleadoId, ct);
+
+    [HttpGet("sin-seguimiento"), Permiso("prospectos.ver")]
+    public Task<List<ProspectoSinSeguimientoDto>> SinSeguimiento(
+        [FromQuery] int dias = 7, [FromQuery] int? empleadoId = null, CancellationToken ct = default) =>
+        servicio.SinSeguimientoAsync(Math.Clamp(dias, 1, 365), empleadoId, ct);
+}
+
 [ApiController]
 [Route("api/citas")]
 public class CitasController(CitaService servicio) : ControllerBase
@@ -72,8 +110,8 @@ public class CitasController(CitaService servicio) : ControllerBase
     [HttpGet, Permiso("citas.ver")]
     public Task<List<CitaDto>> Listar(
         [FromQuery] DateOnly? desde, [FromQuery] DateOnly? hasta,
-        [FromQuery] int? empleadoId, [FromQuery] int? prospectoId, CancellationToken ct) =>
-        servicio.ListarAsync(desde, hasta, empleadoId, prospectoId, ct);
+        [FromQuery] int? empleadoId, [FromQuery] int? prospectoId, [FromQuery] int? clienteId, CancellationToken ct) =>
+        servicio.ListarAsync(desde, hasta, empleadoId, prospectoId, ct, clienteId);
 
     [HttpGet("{id:int}"), Permiso("citas.ver")]
     public Task<CitaDto> Obtener(int id, CancellationToken ct) => servicio.ObtenerAsync(id, ct);

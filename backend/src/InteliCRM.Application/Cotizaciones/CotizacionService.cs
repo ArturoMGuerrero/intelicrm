@@ -86,6 +86,8 @@ public class CotizacionService(IAppDbContext db)
 
         if (cotizacion.Estatus != EstatusCotizacion.Borrador)
             throw new ReglaNegocioException("Solo se pueden eliminar cotizaciones en borrador.");
+        if (await db.Cargos.AnyAsync(c => c.CotizacionId == id, ct))
+            throw new ReglaNegocioException("La cotización ya generó un cargo (aunque esté cancelado), por eso no se puede eliminar.");
 
         db.Cotizaciones.Remove(cotizacion);
         await db.SaveChangesAsync(ct);
@@ -107,6 +109,8 @@ public class CotizacionService(IAppDbContext db)
             throw new NoEncontradoException("Cliente", cId);
         if (req.EmpleadoId is { } eId && !await db.Empleados.AnyAsync(e => e.Id == eId, ct))
             throw new NoEncontradoException("Empleado", eId);
+        if (req.Moneda == Moneda.USD && req.TipoCambio is null)
+            throw new ReglaNegocioException("Indica el tipo de cambio para cotizar en dólares.");
 
         var nuevasPartidas = (await Partidas.ValidarAsync(db, req.Partidas, ct))
             .Select(p => new CotizacionPartida
@@ -125,6 +129,9 @@ public class CotizacionService(IAppDbContext db)
         cotizacion.Fecha = req.Fecha ?? DateOnly.FromDateTime(DateTime.Today);
         cotizacion.VigenciaDias = req.VigenciaDias;
         cotizacion.Notas = req.Notas?.Trim();
+        cotizacion.Moneda = req.Moneda;
+        cotizacion.TipoCambio = req.Moneda == Moneda.USD ? req.TipoCambio : null;
+        cotizacion.Atencion = string.IsNullOrWhiteSpace(req.Atencion) ? null : req.Atencion.Trim();
 
         // Las partidas se reemplazan completas en cada guardado.
         cotizacion.Partidas.Clear();

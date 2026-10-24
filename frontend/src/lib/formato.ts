@@ -4,7 +4,10 @@ const fechaHora = new Intl.DateTimeFormat('es-MX', { day: '2-digit', month: 'sho
 const hora = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit' })
 const diaLargo = new Intl.DateTimeFormat('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
-export const formatoMoneda = (valor: number | null | undefined) => (valor == null ? '—' : moneda.format(valor))
+export const formatoMoneda = (valor: number | null | undefined, divisa: 'MXN' | 'USD' = 'MXN') =>
+  valor == null ? '—' : divisa === 'USD' ? `US${dolares.format(valor)}` : moneda.format(valor)
+
+const dolares = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'USD', currencyDisplay: 'narrowSymbol' })
 
 /** Acepta "2026-09-29" (DateOnly) o "2026-09-29T10:00:00" (DateTime local). */
 export const aFecha = (texto: string) => (texto.length === 10 ? new Date(`${texto}T00:00:00`) : new Date(texto))

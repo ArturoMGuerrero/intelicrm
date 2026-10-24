@@ -70,3 +70,7 @@ export const tonoEstadoSaldo: Record<EstadoSaldo, Tono> = {
   Liquidado: 'verde',
   Cancelado: 'gris',
 }
+
+/** Pantalla de la persona con quien es la cita: el prospecto o el cliente. */
+export const rutaDeCita = (c: { prospectoId: number | null; con: string }) =>
+  c.prospectoId ? `/prospectos/${c.prospectoId}` : `/clientes?buscar=${encodeURIComponent(c.con)}`

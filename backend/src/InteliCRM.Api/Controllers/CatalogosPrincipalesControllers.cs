@@ -58,6 +58,13 @@ public class ProductosController(ProductoService servicio) : ControllerBase
     public Task<ProductoDto> Actualizar(int id, GuardarProductoRequest req, CancellationToken ct) =>
         servicio.ActualizarAsync(id, req, ct);
 
+    [HttpGet("{id:int}/imagen"), Permiso("productos.ver")]
+    public Task<ImagenProductoDto> ObtenerImagen(int id, CancellationToken ct) => servicio.ObtenerImagenAsync(id, ct);
+
+    [HttpPut("{id:int}/imagen"), Permiso("productos.editar"), RequestSizeLimit(600_000)]
+    public Task<ImagenProductoDto> GuardarImagen(int id, GuardarImagenProductoRequest req, CancellationToken ct) =>
+        servicio.GuardarImagenAsync(id, req, ct);
+
     [HttpDelete("{id:int}"), Permiso("productos.eliminar")]
     public async Task<IActionResult> Desactivar(int id, CancellationToken ct)
     {

@@ -96,3 +96,10 @@ public enum EstatusMensaje
     Simulado = 1,
     Error = 2
 }
+
+/// <summary>Moneda de una cotización. Los cargos y la cobranza siempre van en pesos.</summary>
+public enum Moneda
+{
+    MXN = 0,
+    USD = 1
+}

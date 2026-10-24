@@ -16,4 +16,8 @@ public class BitacoraEntrada : EntidadBase
 
     public DateTime Fecha { get; set; }
     public string Descripcion { get; set; } = string.Empty;
+
+    /// <summary>Fecha para retomar el seguimiento; aparece en avisos hasta marcarse como atendido.</summary>
+    public DateTime? FechaAviso { get; set; }
+    public bool AvisoAtendido { get; set; }
 }

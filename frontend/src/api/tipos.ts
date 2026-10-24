@@ -14,6 +14,9 @@ export interface Catalogo {
   activo: boolean
   duracionMinutos: number | null
   diasCredito: number | null
+  /** Solo categorías de productos. */
+  nombreCorto: string | null
+  margenPorcentaje: number | null
 }
 
 export interface Empleado {
@@ -31,18 +34,72 @@ export interface Empleado {
   activo: boolean
 }
 
+export interface ContactoCliente {
+  id: number
+  nombre: string
+  puesto: string | null
+  tipoContactoId: number | null
+  tipoContacto: string | null
+  telefono: string | null
+  extension: string | null
+  celular: string | null
+  correo: string | null
+  principal: boolean
+}
+
+export interface DireccionCliente {
+  id: number
+  nombre: string
+  calle: string
+  numeroExterior: string | null
+  numeroInterior: string | null
+  colonia: string | null
+  codigoPostal: string | null
+  municipio: string | null
+  estado: string | null
+  pais: string
+  instrucciones: string | null
+  principal: boolean
+}
+
 export interface Cliente {
   id: number
   razonSocial: string
   nombreComercial: string | null
   rfc: string | null
+  tipoPersona: TipoPersona
   contactoPrincipal: string | null
   telefono: string | null
   correo: string | null
+  /** Domicilio fiscal. */
   direccion: string | null
+  zona: string | null
   listaPreciosId: number | null
   listaPrecios: string | null
+  condicionPagoId: number | null
+  condicionPago: string | null
+  diasCredito: number | null
+  instrumentoPagoId: number | null
+  instrumentoPago: string | null
+  banco: string | null
+  numeroCuenta: string | null
+  clabe: string | null
+  /** Días de revisión de facturas separados por coma. */
+  diasRevision: string | null
+  horaRevisionDesde: string | null
+  horaRevisionHasta: string | null
+  instruccionesContrarecibo: string | null
+  notas: string | null
   activo: boolean
+  contactos: ContactoCliente[]
+  direcciones: DireccionCliente[]
+}
+
+export interface ProductoProveedor {
+  proveedorId: number
+  proveedor: string
+  codigoProveedor: string | null
+  costo: number | null
 }
 
 export interface Producto {
@@ -51,13 +108,27 @@ export interface Producto {
   nombre: string
   descripcion: string | null
   tipo: TipoProducto
+  categoriaId: number | null
+  categoria: string | null
+  margenCategoria: number | null
+  codigoBarras: string | null
+  codigoAlterno: string | null
+  presentacion: string | null
+  unidadMedida: string | null
+  ubicacion: string | null
   precio: number
+  precioMayoreo: number | null
+  cantidadMayoreo: number | null
   costo: number
   stockMinimo: number | null
   proveedorId: number | null
   proveedor: string | null
+  otrosProveedores: ProductoProveedor[]
+  tieneImagen: boolean
   activo: boolean
 }
+
+export type Moneda = 'MXN' | 'USD'
 
 export interface Prospecto {
   id: number
@@ -69,6 +140,13 @@ export interface Prospecto {
   telefono: string | null
   correo: string | null
   origen: string | null
+  rfc: string | null
+  fechaNacimiento: string | null
+  calle: string | null
+  colonia: string | null
+  codigoPostal: string | null
+  ciudad: string | null
+  estado: string | null
   etapa: EtapaProspecto
   valorEstimado: number | null
   notas: string | null
@@ -84,19 +162,38 @@ export interface Prospecto {
 export interface BitacoraEntrada {
   id: number
   prospectoId: number
+  /** Solo en vistas generales (avisos, bitácora del día). */
+  prospecto: string | null
   fecha: string
   descripcion: string
   empleadoId: number | null
   empleado: string | null
   accionActividadId: number | null
   accionActividad: string | null
+  fechaAviso: string | null
+  avisoAtendido: boolean
+}
+
+export interface ProspectoSinSeguimiento {
+  id: number
+  nombre: string
+  empresa: string | null
+  etapa: EtapaProspecto
+  empleadoResponsable: string | null
+  ultimaBitacora: string | null
+  diasSinSeguimiento: number
 }
 
 export interface Cita {
   id: number
-  prospectoId: number
-  prospecto: string
+  /** La cita es con un prospecto o con un cliente. */
+  prospectoId: number | null
+  clienteId: number | null
+  /** Nombre del prospecto o razón social del cliente. */
+  con: string
+  /** Empresa del prospecto o contacto del cliente. */
   empresa: string | null
+  lugar: string | null
   empleadoId: number
   empleado: string
   colorEmpleado: string
@@ -120,6 +217,7 @@ export interface CotizacionResumen {
   empleado: string | null
   estatus: EstatusCotizacion
   total: number
+  moneda: Moneda
 }
 
 export interface Partida {
@@ -145,10 +243,33 @@ export interface Cotizacion {
   empleado: string | null
   estatus: EstatusCotizacion
   notas: string | null
+  moneda: Moneda
+  tipoCambio: number | null
+  /** "A la atención de". */
+  atencion: string | null
   subtotal: number
   iva: number
   total: number
   partidas: Partida[]
+}
+
+/** Resultado de la búsqueda general de la barra superior. */
+export interface ResultadoBusqueda {
+  tipo: string
+  id: number
+  titulo: string
+  subtitulo: string | null
+  ruta: string
+}
+
+/** Aviso de la campana de la barra superior. */
+export interface Aviso {
+  clave: string
+  titulo: string
+  detalle: string
+  cantidad: number
+  ruta: string
+  nivel: 'info' | 'alerta' | 'peligro'
 }
 
 export interface Dashboard {

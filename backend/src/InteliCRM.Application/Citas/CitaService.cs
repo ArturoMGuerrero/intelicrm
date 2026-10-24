@@ -10,16 +10,19 @@ namespace InteliCRM.Application.Citas;
 
 public record CitaDto(
     int Id,
-    int ProspectoId, string Prospecto, string? Empresa,
+    int? ProspectoId, int? ClienteId, string Con, string? Empresa, string? Lugar,
     int EmpleadoId, string Empleado, string ColorEmpleado,
     int? AccionActividadId, string? AccionActividad,
     DateTime FechaHoraInicio, DateTime FechaHoraFin, int DuracionMinutos,
     EstatusCita Estatus, string? Notas)
 {
-    /// <summary>Requiere Prospecto, Empleado y AccionActividad cargados (Include).</summary>
+    /// <summary>Requiere Prospecto, Cliente, Empleado y AccionActividad cargados (Include).</summary>
     public static CitaDto Desde(Cita c) => new(
         c.Id,
-        c.ProspectoId, c.Prospecto?.NombreCompleto ?? "", c.Prospecto?.Empresa,
+        c.ProspectoId, c.ClienteId,
+        c.Prospecto?.NombreCompleto ?? c.Cliente?.RazonSocial ?? "",
+        c.Prospecto?.Empresa ?? (c.Cliente != null ? c.Cliente.ContactoPrincipal : null),
+        c.Lugar,
         c.EmpleadoId, c.Empleado?.NombreCompleto ?? "", c.Empleado?.ColorAgenda ?? "#3b82f6",
         c.AccionActividadId, c.AccionActividad?.Nombre,
         c.FechaHoraInicio, c.FechaHoraFin, c.DuracionMinutos,
@@ -28,8 +31,12 @@ public record CitaDto(
 
 public class GuardarCitaRequest
 {
-    [Range(1, int.MaxValue, ErrorMessage = "Selecciona un prospecto.")]
-    public int ProspectoId { get; set; }
+    /// <summary>Con quién es la cita: un prospecto o un cliente (exactamente uno).</summary>
+    public int? ProspectoId { get; set; }
+    public int? ClienteId { get; set; }
+
+    [StringLength(200)]
+    public string? Lugar { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "Selecciona un empleado.")]
     public int EmpleadoId { get; set; }
@@ -58,7 +65,7 @@ public class CitaService(IAppDbContext db, HorarioService horarios)
     private static readonly EstatusCita[] EstatusQueLiberanHorario = [EstatusCita.Cancelada, EstatusCita.NoAsistio];
 
     public async Task<List<CitaDto>> ListarAsync(
-        DateOnly? desde, DateOnly? hasta, int? empleadoId, int? prospectoId, CancellationToken ct)
+        DateOnly? desde, DateOnly? hasta, int? empleadoId, int? prospectoId, CancellationToken ct, int? clienteId = null)
     {
         var query = Consulta();
 
@@ -70,6 +77,8 @@ public class CitaService(IAppDbContext db, HorarioService horarios)
             query = query.Where(c => c.EmpleadoId == empleadoId);
         if (prospectoId is not null)
             query = query.Where(c => c.ProspectoId == prospectoId);
+        if (clienteId is not null)
+            query = query.Where(c => c.ClienteId == clienteId);
 
         var citas = await query.OrderBy(c => c.FechaHoraInicio).ToListAsync(ct);
         return citas.Select(CitaDto.Desde).ToList();
@@ -119,6 +128,7 @@ public class CitaService(IAppDbContext db, HorarioService horarios)
     private IQueryable<Cita> Consulta() =>
         db.Citas.AsNoTracking()
             .Include(c => c.Prospecto)
+            .Include(c => c.Cliente)
             .Include(c => c.Empleado)
             .Include(c => c.AccionActividad);
 
@@ -128,8 +138,12 @@ public class CitaService(IAppDbContext db, HorarioService horarios)
 
     private async Task AplicarAsync(Cita cita, GuardarCitaRequest req, CancellationToken ct)
     {
-        if (!await db.Prospectos.AnyAsync(p => p.Id == req.ProspectoId && p.Activo, ct))
-            throw new NoEncontradoException("Prospecto", req.ProspectoId);
+        if ((req.ProspectoId is null) == (req.ClienteId is null))
+            throw new ReglaNegocioException("La cita debe ser con un prospecto o con un cliente.");
+        if (req.ProspectoId is { } prospectoId && !await db.Prospectos.AnyAsync(p => p.Id == prospectoId && p.Activo, ct))
+            throw new NoEncontradoException("Prospecto", prospectoId);
+        if (req.ClienteId is { } clienteId && !await db.Clientes.AnyAsync(c => c.Id == clienteId && c.Activo, ct))
+            throw new NoEncontradoException("Cliente", clienteId);
 
         if (!await db.Empleados.AnyAsync(e => e.Id == req.EmpleadoId && e.Activo, ct))
             throw new NoEncontradoException("Empleado", req.EmpleadoId);
@@ -150,6 +164,8 @@ public class CitaService(IAppDbContext db, HorarioService horarios)
         }
 
         cita.ProspectoId = req.ProspectoId;
+        cita.ClienteId = req.ClienteId;
+        cita.Lugar = string.IsNullOrWhiteSpace(req.Lugar) ? null : req.Lugar.Trim();
         cita.EmpleadoId = req.EmpleadoId;
         cita.AccionActividadId = req.AccionActividadId;
         cita.FechaHoraInicio = req.FechaHoraInicio;

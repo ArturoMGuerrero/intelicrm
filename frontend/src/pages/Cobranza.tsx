@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { useNavigate } from 'react-router'
 import { useCargos, useRegistrarPagoCargo, useResumenCobranza } from '../api/hooks'
 import type { CargoResumen, FiltroEstadoSaldo } from '../api/tipos'
@@ -14,7 +15,8 @@ import { useSesion } from '../sesion/Sesion'
 export default function Cobranza() {
   const navegar = useNavigate()
   const { puede } = useSesion()
-  const [buscar, setBuscar] = useState('')
+  const [parametros] = useSearchParams()
+  const [buscar, setBuscar] = useState(parametros.get('buscar') ?? '')
   const [estado, setEstado] = useState<FiltroEstadoSaldo>('ConSaldo')
   const [pagando, setPagando] = useState<CargoResumen | null>(null)
   const resumen = useResumenCobranza()

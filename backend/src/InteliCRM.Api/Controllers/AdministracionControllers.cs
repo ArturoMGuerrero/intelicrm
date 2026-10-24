@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InteliCRM.Api.Controllers;
 
+[Route("api/categorias-producto")]
+public class CategoriasProductoController(CatalogoService<CategoriaProducto> s) : CatalogoControllerBase<CategoriaProducto>(s);
+
 [Route("api/tipos-contacto")]
 public class TiposContactoController(CatalogoService<TipoContacto> s) : CatalogoControllerBase<TipoContacto>(s);
 

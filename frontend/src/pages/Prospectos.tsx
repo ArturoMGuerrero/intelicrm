@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router'
 import { useCambiarEtapa, useEmpleados, useProspectos } from '../api/hooks'
 import type { EtapaProspecto, Prospecto } from '../api/tipos'
 import FormProspecto from '../components/FormProspecto'
+import { FormPromocion } from './Promociones'
 import {
-  BarraFiltros, Boton, BotonIcono, Buscador, Cargando, Celda, Doble, Encabezado, Fila, Insignia, MensajeError,
+  BarraFiltros, Boton, BotonIcono, Buscador, Cargando, Celda, Doble, Encabezado, Fila, Insignia, MensajeError, Tarjeta as Panel,
   Segmentos, Select, Tabla, Tarjeta, Vacio,
 } from '../components/ui'
 import { ETAPAS, etiquetaEtapa, tonoEtapa } from '../lib/etiquetas'
@@ -62,15 +63,46 @@ export default function Prospectos() {
 
 function TablaProspectos({ prospectos }: { prospectos: Prospecto[] }) {
   const navegar = useNavigate()
+  // Selección para enviar correo o SMS a varios (antes "Enviar correos" / "Enviar mensajes").
+  const puedeEnviar = usePuede('promociones.editar')
+  const [elegidos, setElegidos] = useState<Set<number>>(new Set())
+  const [enviando, setEnviando] = useState(false)
   if (prospectos.length === 0) return <Tarjeta><Vacio mensaje="No se encontraron prospectos." /></Tarjeta>
 
+  const visibles = prospectos.map((p) => p.id)
+  const todos = visibles.every((id) => elegidos.has(id))
+  const alternar = (id: number) => {
+    const nuevo = new Set(elegidos)
+    if (nuevo.has(id)) nuevo.delete(id)
+    else nuevo.add(id)
+    setElegidos(nuevo)
+  }
+
   return (
+    <>
+      {puedeEnviar && elegidos.size > 0 && (
+        <Panel className="mb-3 flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+          <span className="text-sm text-slate-700"><b>{elegidos.size}</b> prospectos seleccionados</span>
+          <div className="flex gap-2">
+            <Boton tamano="sm" variante="fantasma" onClick={() => setElegidos(new Set())}>Quitar selección</Boton>
+            <Boton tamano="sm" variante="primario" icono="mensaje" onClick={() => setEnviando(true)}>Enviar correo o SMS</Boton>
+          </div>
+        </Panel>
+      )}
     <Tabla columnas={[
+      ...(puedeEnviar ? [{ titulo: <input type="checkbox" className="h-4 w-4 accent-marca-600" aria-label="Seleccionar todos" checked={todos}
+        onChange={() => setElegidos(todos ? new Set() : new Set(visibles))} /> }] : []),
       { titulo: 'Prospecto' }, { titulo: 'Contacto' }, { titulo: 'Etapa' },
       { titulo: 'Valor estimado', derecha: true }, { titulo: 'Responsable' },
     ]}>
       {prospectos.map((p) => (
         <Fila key={p.id} onClick={() => navegar(`/prospectos/${p.id}`)}>
+          {puedeEnviar && (
+            <Celda className="w-10" onClick={(e) => e.stopPropagation()}>
+              <input type="checkbox" className="h-4 w-4 accent-marca-600" aria-label={`Seleccionar a ${p.nombreCompleto}`}
+                checked={elegidos.has(p.id)} onChange={() => alternar(p.id)} />
+            </Celda>
+          )}
           <Celda>
             <Doble principal={<Link to={`/prospectos/${p.id}`} className="hover:underline" onClick={(e) => e.stopPropagation()}>{p.nombreCompleto}</Link>}
               secundario={[p.cargo, p.empresa].filter(Boolean).join(' · ') || '—'} />
@@ -85,6 +117,11 @@ function TablaProspectos({ prospectos }: { prospectos: Prospecto[] }) {
         </Fila>
       ))}
     </Tabla>
+      {enviando && (
+        <FormPromocion iniciales={[...elegidos].map((id) => `Prospecto-${id}`)}
+          onCerrar={() => { setEnviando(false); setElegidos(new Set()) }} />
+      )}
+    </>
   )
 }
 
@@ -115,7 +152,7 @@ function Embudo({ prospectos }: { prospectos: Prospecto[] }) {
               </header>
               <ul className="space-y-2">
                 {columna.map((p) => (
-                  <li key={p.id} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+                  <li key={p.id} className="rounded-xl border border-slate-200 bg-superficie p-3 shadow-sm">
                     <Link to={`/prospectos/${p.id}`} className="block text-sm font-medium text-slate-900 hover:underline">{p.nombreCompleto}</Link>
                     <p className="truncate text-xs text-slate-500">{p.empresa ?? '—'}</p>
                     <div className="mt-2 flex items-center justify-between">
@@ -131,7 +168,7 @@ function Embudo({ prospectos }: { prospectos: Prospecto[] }) {
                     </div>
                   </li>
                 ))}
-                {columna.length === 0 && <li className="px-2 py-6 text-center text-xs text-slate-400">Sin prospectos</li>}
+                {columna.length === 0 && <li className="px-2 py-6 text-center text-xs text-slate-500">Sin prospectos</li>}
               </ul>
             </section>
           )

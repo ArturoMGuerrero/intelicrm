@@ -188,13 +188,17 @@ public class CargoService(IAppDbContext db, InventarioService inventario)
         cargo.EmpleadoId = cotizacion.EmpleadoId;
         cargo.CondicionPagoId = req.CondicionPagoId;
         cargo.AlmacenId = req.AlmacenId;
-        cargo.Notas = $"Generado de la cotización {cotizacion.Folio}.";
+        // Los cargos van en pesos: una cotización en dólares se convierte con su tipo de cambio.
+        var tipoCambio = cotizacion.Moneda == Moneda.USD ? cotizacion.TipoCambio ?? 1 : 1;
+        cargo.Notas = cotizacion.Moneda == Moneda.USD
+            ? $"Generado de la cotización {cotizacion.Folio} (USD a tipo de cambio {tipoCambio:0.####})."
+            : $"Generado de la cotización {cotizacion.Folio}.";
         cargo.FijarPlazo(req.Fecha ?? Saldos.Hoy, dias);
         foreach (var p in cotizacion.Partidas.OrderBy(p => p.Id))
             cargo.Partidas.Add(new CargoPartida
             {
                 ProductoId = p.ProductoId, Descripcion = p.Descripcion, Cantidad = p.Cantidad,
-                PrecioUnitario = p.PrecioUnitario, DescuentoPorcentaje = p.DescuentoPorcentaje,
+                PrecioUnitario = Math.Round(p.PrecioUnitario * tipoCambio, 2), DescuentoPorcentaje = p.DescuentoPorcentaje,
             });
         cargo.RecalcularTotales();
 

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router'
 import { useCatalogo, useDesactivarProveedor, useGuardarProveedor, useProveedores } from '../api/hooks'
 import type { Proveedor, TipoPersona } from '../api/tipos'
 import {
@@ -10,7 +11,8 @@ import { SiPuede } from '../sesion/Sesion'
 
 export default function Proveedores() {
   const confirmar = useConfirmar()
-  const [buscar, setBuscar] = useState('')
+  const [parametros] = useSearchParams()
+  const [buscar, setBuscar] = useState(parametros.get('buscar') ?? '')
   const [inactivos, setInactivos] = useState(false)
   const [editando, setEditando] = useState<Proveedor | 'nuevo' | null>(null)
   const { data, isLoading, error } = useProveedores(buscar, inactivos)

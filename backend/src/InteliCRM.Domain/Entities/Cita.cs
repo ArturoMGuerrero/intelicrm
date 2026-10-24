@@ -5,8 +5,14 @@ namespace InteliCRM.Domain.Entities;
 
 public class Cita : EntidadBase
 {
-    public int ProspectoId { get; set; }
+    /// <summary>La cita es con un prospecto o con un cliente (uno de los dos).</summary>
+    public int? ProspectoId { get; set; }
     public Prospecto? Prospecto { get; set; }
+    public int? ClienteId { get; set; }
+    public Cliente? Cliente { get; set; }
+
+    /// <summary>Lugar de la cita o evento (oficina, domicilio del cliente, videollamada...).</summary>
+    public string? Lugar { get; set; }
 
     public int EmpleadoId { get; set; }
     public Empleado? Empleado { get; set; }

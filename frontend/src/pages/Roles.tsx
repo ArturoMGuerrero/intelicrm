@@ -62,7 +62,7 @@ function ResumenPermisos({ modulos, permisos }: { modulos: ModuloPermiso[]; perm
   const conAcceso = modulos
     .map((m) => ({ m, acciones: m.acciones.filter((a) => permisos.includes(`${m.clave}.${a}`)) }))
     .filter((x) => x.acciones.length > 0)
-  if (conAcceso.length === 0) return <p className="text-sm text-slate-400">Sin permisos.</p>
+  if (conAcceso.length === 0) return <p className="text-sm text-slate-500">Sin permisos.</p>
   return (
     <ul className="space-y-1.5 text-sm">
       {conAcceso.map(({ m, acciones }) => (
