@@ -67,8 +67,53 @@ public class ClienteConfig : IEntityTypeConfiguration<Cliente>
         b.Property(x => x.Telefono).HasMaxLength(20);
         b.Property(x => x.Correo).HasMaxLength(150);
         b.Property(x => x.Direccion).HasMaxLength(500);
+        b.Property(x => x.TipoPersona).HasConversion<string>().HasMaxLength(10);
+        b.Property(x => x.Zona).HasMaxLength(100);
+        b.Property(x => x.Banco).HasMaxLength(100);
+        b.Property(x => x.NumeroCuenta).HasMaxLength(30);
+        b.Property(x => x.Clabe).HasMaxLength(18);
+        b.Property(x => x.DiasRevision).HasMaxLength(100);
+        b.Property(x => x.InstruccionesContrarecibo).HasMaxLength(1000);
+        b.Property(x => x.Notas).HasMaxLength(2000);
         b.HasOne(x => x.ListaPrecios).WithMany().HasForeignKey(x => x.ListaPreciosId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.CondicionPago).WithMany().HasForeignKey(x => x.CondicionPagoId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.InstrumentoPago).WithMany().HasForeignKey(x => x.InstrumentoPagoId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(x => new { x.CuentaId, x.Rfc }).IsUnique().HasFilter("[Rfc] IS NOT NULL");
+    }
+}
+
+public class ContactoClienteConfig : IEntityTypeConfiguration<ContactoCliente>
+{
+    public void Configure(EntityTypeBuilder<ContactoCliente> b)
+    {
+        b.ToTable("ContactosCliente");
+        b.Property(x => x.Nombre).HasMaxLength(150).IsRequired();
+        b.Property(x => x.Puesto).HasMaxLength(100);
+        b.Property(x => x.Telefono).HasMaxLength(20);
+        b.Property(x => x.Extension).HasMaxLength(10);
+        b.Property(x => x.Celular).HasMaxLength(20);
+        b.Property(x => x.Correo).HasMaxLength(150);
+        b.HasOne(x => x.Cliente).WithMany(c => c.Contactos).HasForeignKey(x => x.ClienteId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne(x => x.TipoContacto).WithMany().HasForeignKey(x => x.TipoContactoId).OnDelete(DeleteBehavior.Restrict);
+    }
+}
+
+public class DireccionClienteConfig : IEntityTypeConfiguration<DireccionCliente>
+{
+    public void Configure(EntityTypeBuilder<DireccionCliente> b)
+    {
+        b.ToTable("DireccionesCliente");
+        b.Property(x => x.Nombre).HasMaxLength(100).IsRequired();
+        b.Property(x => x.Calle).HasMaxLength(200).IsRequired();
+        b.Property(x => x.NumeroExterior).HasMaxLength(20);
+        b.Property(x => x.NumeroInterior).HasMaxLength(20);
+        b.Property(x => x.Colonia).HasMaxLength(100);
+        b.Property(x => x.CodigoPostal).HasMaxLength(5);
+        b.Property(x => x.Municipio).HasMaxLength(100);
+        b.Property(x => x.Estado).HasMaxLength(100);
+        b.Property(x => x.Pais).HasMaxLength(60).IsRequired();
+        b.Property(x => x.Instrucciones).HasMaxLength(500);
+        b.HasOne(x => x.Cliente).WithMany(c => c.Direcciones).HasForeignKey(x => x.ClienteId).OnDelete(DeleteBehavior.Cascade);
     }
 }
 
@@ -83,8 +128,30 @@ public class ProductoConfig : IEntityTypeConfiguration<Producto>
         b.Property(x => x.Tipo).HasConversion<string>().HasMaxLength(20);
         b.Property(x => x.Costo).HasPrecision(18, 4);
         b.Property(x => x.StockMinimo).HasPrecision(18, 4);
+        b.Property(x => x.PrecioMayoreo).HasPrecision(18, 4);
+        b.Property(x => x.CantidadMayoreo).HasPrecision(18, 4);
+        b.Property(x => x.CodigoBarras).HasMaxLength(50);
+        b.Property(x => x.CodigoAlterno).HasMaxLength(50);
+        b.Property(x => x.Presentacion).HasMaxLength(100);
+        b.Property(x => x.UnidadMedida).HasMaxLength(30);
+        b.Property(x => x.Ubicacion).HasMaxLength(100);
         b.HasOne(x => x.Proveedor).WithMany().HasForeignKey(x => x.ProveedorId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Categoria).WithMany().HasForeignKey(x => x.CategoriaId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(x => new { x.CuentaId, x.Codigo }).IsUnique();
+        b.HasIndex(x => new { x.CuentaId, x.CodigoBarras }).IsUnique().HasFilter("[CodigoBarras] IS NOT NULL");
+    }
+}
+
+public class ProductoProveedorConfig : IEntityTypeConfiguration<ProductoProveedor>
+{
+    public void Configure(EntityTypeBuilder<ProductoProveedor> b)
+    {
+        b.ToTable("ProductosProveedores");
+        b.Property(x => x.CodigoProveedor).HasMaxLength(50);
+        b.Property(x => x.Costo).HasPrecision(18, 4);
+        b.HasOne(x => x.Producto).WithMany(p => p.OtrosProveedores).HasForeignKey(x => x.ProductoId).OnDelete(DeleteBehavior.Cascade);
+        b.HasOne(x => x.Proveedor).WithMany().HasForeignKey(x => x.ProveedorId).OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(x => new { x.ProductoId, x.ProveedorId }).IsUnique();
     }
 }
 
@@ -100,6 +167,12 @@ public class ProspectoConfig : IEntityTypeConfiguration<Prospecto>
         b.Property(x => x.Telefono).HasMaxLength(20);
         b.Property(x => x.Correo).HasMaxLength(150);
         b.Property(x => x.Origen).HasMaxLength(100);
+        b.Property(x => x.Rfc).HasMaxLength(13);
+        b.Property(x => x.Calle).HasMaxLength(200);
+        b.Property(x => x.Colonia).HasMaxLength(100);
+        b.Property(x => x.CodigoPostal).HasMaxLength(5);
+        b.Property(x => x.Ciudad).HasMaxLength(100);
+        b.Property(x => x.Estado).HasMaxLength(100);
         b.Property(x => x.Notas).HasMaxLength(2000);
         b.Property(x => x.Etapa).HasConversion<string>().HasMaxLength(20);
         b.HasIndex(x => x.Etapa);
@@ -116,6 +189,7 @@ public class BitacoraEntradaConfig : IEntityTypeConfiguration<BitacoraEntrada>
     {
         b.ToTable("Bitacora");
         b.Property(x => x.Descripcion).HasMaxLength(4000).IsRequired();
+        b.HasIndex(x => new { x.AvisoAtendido, x.FechaAviso });
         b.HasOne(x => x.Prospecto).WithMany(p => p.Bitacora).HasForeignKey(x => x.ProspectoId).OnDelete(DeleteBehavior.Cascade);
         b.HasOne(x => x.Empleado).WithMany().HasForeignKey(x => x.EmpleadoId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.AccionActividad).WithMany().HasForeignKey(x => x.AccionActividadId).OnDelete(DeleteBehavior.Restrict);
@@ -130,7 +204,9 @@ public class CitaConfig : IEntityTypeConfiguration<Cita>
         b.ToTable("Citas");
         b.Property(x => x.Notas).HasMaxLength(1000);
         b.Property(x => x.Estatus).HasConversion<string>().HasMaxLength(20);
+        b.Property(x => x.Lugar).HasMaxLength(200);
         b.HasOne(x => x.Prospecto).WithMany().HasForeignKey(x => x.ProspectoId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne(x => x.Cliente).WithMany().HasForeignKey(x => x.ClienteId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.Empleado).WithMany().HasForeignKey(x => x.EmpleadoId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne(x => x.AccionActividad).WithMany().HasForeignKey(x => x.AccionActividadId).OnDelete(DeleteBehavior.Restrict);
         b.HasIndex(x => new { x.EmpleadoId, x.FechaHoraInicio });
@@ -142,6 +218,9 @@ public class CotizacionConfig : IEntityTypeConfiguration<Cotizacion>
     public void Configure(EntityTypeBuilder<Cotizacion> b)
     {
         b.ToTable("Cotizaciones");
+        b.Property(x => x.Moneda).HasConversion<string>().HasMaxLength(3);
+        b.Property(x => x.TipoCambio).HasPrecision(18, 4);
+        b.Property(x => x.Atencion).HasMaxLength(150);
         b.Property(x => x.Folio).HasMaxLength(50).IsRequired();
         b.Property(x => x.Notas).HasMaxLength(2000);
         b.Property(x => x.Estatus).HasConversion<string>().HasMaxLength(20);

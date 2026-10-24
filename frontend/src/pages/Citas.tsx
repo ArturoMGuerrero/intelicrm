@@ -4,10 +4,10 @@ import { useCambiarEstatusCita, useCitas, useEliminarCita, useEmpleados } from '
 import type { Cita, EstatusCita } from '../api/tipos'
 import FormCita from '../components/FormCita'
 import {
-  BarraFiltros, Boton, BotonIcono, Cargando, cn, Encabezado, Icono, Input, MensajeError, Select, Tarjeta, tonos,
+  BarraFiltros, Boton, BotonIcono, Cargando, cn, Encabezado, Icono, Input, Insignia, MensajeError, Select, Tarjeta, tonos,
   useConfirmar, Vacio,
 } from '../components/ui'
-import { ESTATUS_CITA, etiquetaEstatusCita, tonoEstatusCita } from '../lib/etiquetas'
+import { ESTATUS_CITA, etiquetaEstatusCita, rutaDeCita, tonoEstatusCita } from '../lib/etiquetas'
 import { aIsoFecha, formatoDiaLargo, formatoHora, sumarDias } from '../lib/formato'
 import { SiPuede, useSesion } from '../sesion/Sesion'
 
@@ -26,7 +26,7 @@ export default function Citas() {
   const esHoy = fecha === aIsoFecha(new Date())
 
   const eliminarCita = async (c: Cita) => {
-    if (await confirmar({ titulo: 'Eliminar cita', mensaje: <>¿Eliminar la cita de <b>{c.prospecto}</b> a las {formatoHora(c.fechaHoraInicio)}?</>, textoConfirmar: 'Eliminar', peligro: true }))
+    if (await confirmar({ titulo: 'Eliminar cita', mensaje: <>¿Eliminar la cita de <b>{c.con}</b> a las {formatoHora(c.fechaHoraInicio)}?</>, textoConfirmar: 'Eliminar', peligro: true }))
       eliminar.mutate(c.id)
   }
 
@@ -44,10 +44,10 @@ export default function Citas() {
 
       <BarraFiltros>
         <div className="flex items-center gap-1">
-          <BotonIcono icono="izquierda" etiqueta="Día anterior" onClick={() => setDia(sumarDias(dia, -1))} className="border border-slate-300 bg-white p-2" />
+          <BotonIcono icono="izquierda" etiqueta="Día anterior" onClick={() => setDia(sumarDias(dia, -1))} className="border border-slate-300 bg-superficie p-2" />
           <Input type="date" className="w-auto" value={fecha} aria-label="Fecha"
             onChange={(e) => e.target.value && setDia(new Date(`${e.target.value}T00:00:00`))} />
-          <BotonIcono icono="derecha" etiqueta="Día siguiente" onClick={() => setDia(sumarDias(dia, 1))} className="border border-slate-300 bg-white p-2" />
+          <BotonIcono icono="derecha" etiqueta="Día siguiente" onClick={() => setDia(sumarDias(dia, 1))} className="border border-slate-300 bg-superficie p-2" />
           {!esHoy && <Boton variante="fantasma" onClick={() => setDia(new Date())}>Hoy</Boton>}
         </div>
         <Select className="md:ml-auto md:w-56" value={empleadoId} aria-label="Empleado"
@@ -67,7 +67,7 @@ export default function Citas() {
           {data.map((c) => {
             const inactiva = c.estatus === 'Cancelada' || c.estatus === 'NoAsistio'
             return (
-              <li key={c.id} className={cn('flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center', inactiva && 'opacity-60')}>
+              <li key={c.id} className={cn('flex flex-col gap-3 rounded-xl border border-slate-200 bg-superficie p-4 shadow-sm sm:flex-row sm:items-center', inactiva && 'opacity-60')}>
                 <div className="flex items-center gap-3 sm:w-36">
                   <span className="h-10 w-1 rounded-full" style={{ background: c.colorEmpleado }} />
                   <div className="tabular-nums">
@@ -76,11 +76,12 @@ export default function Citas() {
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <Link to={`/prospectos/${c.prospectoId}`} className={cn('font-medium text-slate-900 hover:underline', inactiva && 'line-through')}>
-                    {c.prospecto}
+                  <Link to={rutaDeCita(c)} className={cn('font-medium text-slate-900 hover:underline', inactiva && 'line-through')}>
+                    {c.con}
                   </Link>
+                  {c.clienteId && <Insignia tono="verde" className="ml-2">Cliente</Insignia>}
                   {c.empresa && <span className="text-sm text-slate-500"> · {c.empresa}</span>}
-                  <p className="text-sm text-slate-600">{c.accionActividad ?? 'Cita'} con {c.empleado}</p>
+                  <p className="text-sm text-slate-600">{c.accionActividad ?? 'Cita'} con {c.empleado}{c.lugar && <> · <Icono nombre="sucursales" className="inline h-3.5 w-3.5 align-[-2px] text-slate-400" /> {c.lugar}</>}</p>
                   {c.notas && <p className="mt-1 text-xs text-slate-500">{c.notas}</p>}
                 </div>
                 <div className="flex items-center gap-1">

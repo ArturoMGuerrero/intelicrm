@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>InteliCRM</title>
+    <script>
+      // Aplica el modo oscuro antes de pintar para evitar el destello blanco (ver src/lib/tema.ts).
+      try {
+        var t = localStorage.getItem('tema')
+        if (t === 'oscuro' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark')
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

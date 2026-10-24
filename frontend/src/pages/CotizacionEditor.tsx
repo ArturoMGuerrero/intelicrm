@@ -4,7 +4,7 @@ import {
   useAlmacenes, useCambiarEstatusCotizacion, useCargoDesdeCotizacion, useCatalogo, useClientes, useCotizacion, useEliminarCotizacion, useEmpleados,
   useGuardarCotizacion, usePreciosCliente, useProductos, useProspectos,
 } from '../api/hooks'
-import type { Cotizacion, EstatusCotizacion } from '../api/tipos'
+import type { Cotizacion, EstatusCotizacion, Moneda } from '../api/tipos'
 import {
   Aviso, Boton, BotonEnlace, Campo, Cargando, Icono, Input, Insignia, MensajeError, Modal, nulo, PieFormulario, Select,
   Tarjeta, Textarea, useConfirmar,
@@ -51,6 +51,9 @@ function Editor({ cotizacion }: { cotizacion?: Cotizacion }) {
     fecha: cotizacion?.fecha ?? aIsoFecha(new Date()),
     vigenciaDias: cotizacion?.vigenciaDias.toString() ?? '15',
     notas: cotizacion?.notas ?? '',
+    moneda: cotizacion?.moneda ?? ('MXN' as Moneda),
+    tipoCambio: cotizacion?.tipoCambio?.toString() ?? '',
+    atencion: cotizacion?.atencion ?? '',
   })
   const [partidas, setPartidas] = useState<PartidaForm[]>(() => partidasDesde(cotizacion?.partidas))
 
@@ -68,6 +71,14 @@ function Editor({ cotizacion }: { cotizacion?: Cotizacion }) {
     : prospectos.data?.find((p) => p.id === Number(f.prospectoId))?.clienteId ?? undefined
   const precios = usePreciosCliente(clienteEfectivo)
 
+  // "A la atención de": contactos del cliente, o el propio prospecto.
+  const contactosCliente = clientes.data?.find((c) => c.id === clienteEfectivo)?.contactos ?? []
+  const prospectoElegido = para === 'prospecto' ? prospectos.data?.find((p) => p.id === Number(f.prospectoId)) : undefined
+  const sugerenciasAtencion = [
+    ...(prospectoElegido ? [prospectoElegido.nombreCompleto] : []),
+    ...contactosCliente.map((c) => c.nombre),
+  ]
+
   const enviar = (e: FormEvent) => {
     e.preventDefault()
     guardar.mutate(
@@ -80,6 +91,9 @@ function Editor({ cotizacion }: { cotizacion?: Cotizacion }) {
           fecha: f.fecha,
           vigenciaDias: Number(f.vigenciaDias),
           notas: nulo(f.notas),
+          moneda: f.moneda,
+          tipoCambio: f.moneda === 'USD' ? Number(f.tipoCambio) : null,
+          atencion: nulo(f.atencion),
           partidas: partidasParaApi(partidas),
         },
       },
@@ -171,9 +185,25 @@ function Editor({ cotizacion }: { cotizacion?: Cotizacion }) {
                 <Input type="number" min="1" max="365" value={f.vigenciaDias} onChange={cambiar('vigenciaDias')} required />
               </Campo>
             </div>
+            <Campo etiqueta="A la atención de" className="lg:col-span-2" ayuda="Persona que recibe la cotización.">
+              <Input list="sugerencias-atencion" value={f.atencion} onChange={cambiar('atencion')} placeholder="Nombre del contacto" />
+              <datalist id="sugerencias-atencion">{sugerenciasAtencion.map((n) => <option key={n} value={n} />)}</datalist>
+            </Campo>
+            <Campo etiqueta="Moneda">
+              <Select value={f.moneda} onChange={cambiar('moneda')}>
+                <option value="MXN">Pesos (MXN)</option>
+                <option value="USD">Dólares (USD)</option>
+              </Select>
+            </Campo>
+            {f.moneda === 'USD' && (
+              <Campo etiqueta="Tipo de cambio *" ayuda="Pesos por dólar. Se usa al generar el cargo.">
+                <Input type="number" min="0.0001" step="0.0001" value={f.tipoCambio} onChange={cambiar('tipoCambio')} required />
+              </Campo>
+            )}
           </Tarjeta>
 
-          <EditorPartidas partidas={partidas} setPartidas={setPartidas} productos={productos.data} preciosEspeciales={precios.data} />
+          <EditorPartidas partidas={partidas} setPartidas={setPartidas} productos={productos.data} preciosEspeciales={precios.data}
+            moneda={f.moneda} tipoCambio={Number(f.tipoCambio) || undefined} />
 
           <Tarjeta>
             <Campo etiqueta="Notas y condiciones">
@@ -228,7 +258,9 @@ function GenerarCargo({ cotizacion, onCerrar }: { cotizacion: Cotizacion; onCerr
     <Modal abierto titulo={`Generar cargo de ${cotizacion.folio}`} onCerrar={onCerrar} ancho="max-w-md">
       <form onSubmit={enviar} className="space-y-4">
         <p className="text-sm text-slate-600">
-          Se creará un cargo por <b>{formatoMoneda(cotizacion.total)}</b> a {cotizacion.destinatario} con las mismas partidas.
+          {cotizacion.moneda === 'USD' && cotizacion.tipoCambio
+            ? <>Se creará un cargo en pesos por <b>{formatoMoneda(Math.round(cotizacion.total * cotizacion.tipoCambio * 100) / 100)}</b> ({formatoMoneda(cotizacion.total, 'USD')} a {cotizacion.tipoCambio}) a {cotizacion.destinatario} con las mismas partidas.</>
+            : <>Se creará un cargo por <b>{formatoMoneda(cotizacion.total)}</b> a {cotizacion.destinatario} con las mismas partidas.</>}
           El saldo aparecerá en Cuentas por cobrar.
         </p>
         <Campo etiqueta="Fecha del cargo"><Input type="date" value={f.fecha} onChange={(e) => setF({ ...f, fecha: e.target.value })} required /></Campo>

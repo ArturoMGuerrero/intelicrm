@@ -29,6 +29,7 @@ import ProspectoDetalle from './pages/ProspectoDetalle'
 import Prospectos from './pages/Prospectos'
 import Proveedores from './pages/Proveedores'
 import Roles from './pages/Roles'
+import Seguimiento from './pages/Seguimiento'
 import Soporte from './pages/Soporte'
 import Sucursales from './pages/Sucursales'
 import Usuarios from './pages/Usuarios'
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="prospectos" element={conPermiso('prospectos.ver', <Prospectos />)} />
           <Route path="prospectos/:id" element={conPermiso('prospectos.ver', <ProspectoDetalle />)} />
           <Route path="citas" element={conPermiso('citas.ver', <Citas />)} />
+          <Route path="seguimiento" element={conPermiso('prospectos.ver', <Seguimiento />)} />
           <Route path="cotizaciones" element={conPermiso('cotizaciones.ver', <Cotizaciones />)} />
           <Route path="cotizaciones/nueva" element={conPermiso('cotizaciones.editar', <CotizacionEditor />)} />
           <Route path="cotizaciones/:id" element={conPermiso('cotizaciones.ver', <CotizacionEditor />)} />
@@ -60,7 +62,7 @@ export default function App() {
           <Route path="compras/:id" element={conPermiso('compras.ver', <OrdenCompra />)} />
           <Route path="inventario" element={conPermiso('inventario.ver', <Inventario />)} />
           <Route path="listas-precios" element={conPermiso('listas-precios.ver', <ListasPrecios />)} />
-          <Route path="empresa" element={<MiEmpresa />} />
+          <Route path="empresa" element={conPermiso('empresa.ver', <MiEmpresa />)} />
           <Route path="mensajes" element={conPermiso('mensajes.ver', <Mensajes />)} />
           <Route path="promociones" element={conPermiso('promociones.ver', <Promociones />)} />
           <Route path="formatos" element={conPermiso('formatos.ver', <Formatos />)} />
@@ -75,6 +77,9 @@ export default function App() {
           <Route path="catalogos/acciones-actividades" element={conPermiso('catalogos.ver',
             <CatalogoSimple ruta="acciones-actividades" titulo="Acciones y actividades"
               descripcion="Tipos de actividad comercial: llamadas, visitas, demostraciones…" conDuracion />)} />
+          <Route path="catalogos/categorias-producto" element={conPermiso('catalogos.ver',
+            <CatalogoSimple ruta="categorias-producto" titulo="Categorías de productos"
+              descripcion="Agrupan productos y servicios; su margen sugiere el precio a partir del costo." conMargen />)} />
           <Route path="catalogos/descripciones-servicio" element={conPermiso('catalogos.ver',
             <CatalogoSimple ruta="descripciones-servicio" titulo="Descripción de servicios" descripcion="Servicios que ofrece la empresa y su alcance." />)} />
           <Route path="catalogos/tipos-contacto" element={conPermiso('catalogos.ver',

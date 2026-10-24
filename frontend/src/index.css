@@ -2,38 +2,141 @@
 
 /*
  * Todo el diseño se hace con clases de Tailwind dentro de los componentes
- * (src/components/ui). Aquí solo van los colores de la marca y estilos base.
+ * (src/components/ui). Aquí solo van los colores de la marca, el modo oscuro y estilos base.
  */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  /* Marca: azul índigo sobrio */
-  --color-marca-50: #eef2ff;
-  --color-marca-100: #e0e7ff;
-  --color-marca-200: #c7d2fe;
-  --color-marca-300: #a5b4fc;
-  --color-marca-400: #818cf8;
-  --color-marca-500: #5b6ee1;
-  --color-marca-600: #4757c9;
-  --color-marca-700: #3b48a8;
-  --color-marca-800: #323c86;
-  --color-marca-900: #2c3469;
+  /* Marca: violeta (#6C3CE1). Sobre la marca va texto blanco. */
+  --color-marca-50: #f4f0ff;
+  --color-marca-100: #ebe3ff;
+  --color-marca-200: #d9caff;
+  --color-marca-300: #bea3ff;
+  --color-marca-400: #9f73fb;
+  --color-marca-500: #8150f0;
+  --color-marca-600: #6c3ce1;
+  --color-marca-700: #5a2ec4;
+  --color-marca-800: #4a289e;
+  --color-marca-900: #3e2580;
+  /* Superficies: tarjetas, menú y fondo de la página. Cambian en modo oscuro. */
+  --color-superficie: #ffffff;
+  --color-fondo: #f2f3f7;
 }
 
+/*
+ * Modo oscuro: en lugar de repetir "dark:" en cada componente, se invierte la escala de
+ * grises (slate) y las superficies, y los tintes claros de color (50-200) pasan a ser
+ * transparentes y los tonos de texto (600-900) se aclaran para leerse sobre fondo oscuro.
+ * Así todas las pantallas cambian solas. bg-black y text-white no cambian.
+ */
 @layer base {
+  .dark {
+    color-scheme: dark;
+    /* Más separación entre el fondo (casi negro) y las tarjetas/menú. */
+    --color-superficie: #1d1b27;
+    --color-fondo: #0c0b10;
+    --color-slate-50: #272534;
+    --color-slate-100: #2f2d3d;
+    --color-slate-200: #3a3849;
+    --color-slate-300: #4d4b5e;
+    --color-slate-400: #9896ad;
+    --color-slate-500: #b6b4c7;
+    --color-slate-600: #cac8d8;
+    --color-slate-700: #dedced;
+    --color-slate-800: #dddbe6;
+    --color-slate-900: #eeedf4;
+    --color-slate-950: #f7f6fb;
+    --color-sky-50: rgb(14 165 233 / 0.12);
+    --color-sky-100: rgb(14 165 233 / 0.18);
+    --color-sky-200: rgb(14 165 233 / 0.32);
+    --color-sky-600: #38bdf8;
+    --color-sky-700: #38bdf8;
+    --color-sky-800: #7dd3fc;
+    --color-sky-900: #7dd3fc;
+    --color-emerald-50: rgb(16 185 129 / 0.12);
+    --color-emerald-100: rgb(16 185 129 / 0.18);
+    --color-emerald-200: rgb(16 185 129 / 0.32);
+    --color-emerald-600: #34d399;
+    --color-emerald-700: #34d399;
+    --color-emerald-800: #6ee7b7;
+    --color-emerald-900: #6ee7b7;
+    --color-amber-50: rgb(245 158 11 / 0.12);
+    --color-amber-100: rgb(245 158 11 / 0.18);
+    --color-amber-200: rgb(245 158 11 / 0.32);
+    --color-amber-600: #fbbf24;
+    --color-amber-700: #fbbf24;
+    --color-amber-800: #fcd34d;
+    --color-amber-900: #fcd34d;
+    --color-rose-50: rgb(244 63 94 / 0.12);
+    --color-rose-100: rgb(244 63 94 / 0.18);
+    --color-rose-200: rgb(244 63 94 / 0.32);
+    --color-rose-600: #fb7185;
+    --color-rose-700: #fb7185;
+    --color-rose-800: #fda4af;
+    --color-rose-900: #fda4af;
+    --color-red-50: rgb(239 68 68 / 0.12);
+    --color-red-100: rgb(239 68 68 / 0.18);
+    --color-red-200: rgb(239 68 68 / 0.32);
+    --color-red-600: #f87171;
+    --color-red-700: #f87171;
+    --color-red-800: #fca5a5;
+    --color-red-900: #fca5a5;
+    --color-indigo-50: rgb(99 102 241 / 0.12);
+    --color-indigo-100: rgb(99 102 241 / 0.18);
+    --color-indigo-200: rgb(99 102 241 / 0.32);
+    --color-indigo-600: #818cf8;
+    --color-indigo-700: #818cf8;
+    --color-indigo-800: #a5b4fc;
+    --color-indigo-900: #a5b4fc;
+    --color-blue-50: rgb(59 130 246 / 0.12);
+    --color-blue-100: rgb(59 130 246 / 0.18);
+    --color-blue-200: rgb(59 130 246 / 0.32);
+    --color-blue-600: #60a5fa;
+    --color-blue-700: #60a5fa;
+    --color-blue-800: #93c5fd;
+    --color-blue-900: #93c5fd;
+    --color-teal-50: rgb(20 184 166 / 0.12);
+    --color-teal-100: rgb(20 184 166 / 0.18);
+    --color-teal-200: rgb(20 184 166 / 0.32);
+    --color-teal-600: #2dd4bf;
+    --color-teal-700: #2dd4bf;
+    --color-teal-800: #5eead4;
+    --color-teal-900: #5eead4;
+    --color-violet-50: rgb(139 92 246 / 0.12);
+    --color-violet-100: rgb(139 92 246 / 0.18);
+    --color-violet-200: rgb(139 92 246 / 0.32);
+    --color-violet-600: #a78bfa;
+    --color-violet-700: #a78bfa;
+    --color-violet-800: #c4b5fd;
+    --color-violet-900: #c4b5fd;
+    --color-green-50: rgb(34 197 94 / 0.12);
+    --color-green-100: rgb(34 197 94 / 0.18);
+    --color-green-200: rgb(34 197 94 / 0.32);
+    --color-green-600: #4ade80;
+    --color-green-700: #4ade80;
+    --color-green-800: #86efac;
+    --color-green-900: #86efac;
+    --color-marca-50: rgb(124 77 255 / 0.18);
+    --color-marca-100: rgb(124 77 255 / 0.26);
+    --color-marca-200: rgb(124 77 255 / 0.32);
+    /* Violeta más luminoso para que resalte sobre el fondo oscuro. */
+    --color-marca-500: #9671ff;
+    --color-marca-600: #7d4fff;
+    --color-marca-700: #b69cff;
+    --color-marca-800: #c9b6ff;
+    --color-marca-900: #c9b6ff;
+  }
+
   body {
-    @apply min-h-screen bg-slate-50 text-slate-800 antialiased;
-    /* Fondo con manchas suaves de color, fijo al hacer scroll. */
-    background-image:
-      radial-gradient(at 0% 0%, rgb(71 87 201 / 0.05) 0, transparent 45%),
-      radial-gradient(at 100% 0%, rgb(14 165 233 / 0.04) 0, transparent 40%);
-    background-attachment: fixed;
+    @apply min-h-screen bg-fondo text-slate-800 antialiased;
   }
 }
 
 @layer components {
-  /* Scroll discreto para el menú lateral oscuro. */
+  /* Scroll discreto para el menú lateral. */
   .menu-scroll {
     scrollbar-width: thin;
-    scrollbar-color: rgb(255 255 255 / 0.15) transparent;
+    scrollbar-color: rgb(148 163 184 / 0.3) transparent;
   }
 }

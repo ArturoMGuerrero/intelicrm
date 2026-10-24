@@ -7,12 +7,12 @@ namespace InteliCRM.Application.Cotizaciones;
 public record CotizacionResumenDto(
     int Id, string Folio, DateOnly Fecha, DateOnly FechaVencimiento,
     int? ProspectoId, int? ClienteId, string Destinatario,
-    string? Empleado, EstatusCotizacion Estatus, decimal Total)
+    string? Empleado, EstatusCotizacion Estatus, decimal Total, Moneda Moneda)
 {
     public static CotizacionResumenDto Desde(Cotizacion c) => new(
         c.Id, c.Folio, c.Fecha, c.FechaVencimiento,
         c.ProspectoId, c.ClienteId, NombreDestinatario(c),
-        c.Empleado?.NombreCompleto, c.Estatus, c.Total);
+        c.Empleado?.NombreCompleto, c.Estatus, c.Total, c.Moneda);
 
     internal static string NombreDestinatario(Cotizacion c) =>
         c.Cliente?.RazonSocial
@@ -31,6 +31,7 @@ public record CotizacionDto(
     int? ProspectoId, int? ClienteId, string Destinatario,
     int? EmpleadoId, string? Empleado,
     EstatusCotizacion Estatus, string? Notas,
+    Moneda Moneda, decimal? TipoCambio, string? Atencion,
     decimal Subtotal, decimal Iva, decimal Total,
     List<PartidaDto> Partidas)
 {
@@ -38,7 +39,7 @@ public record CotizacionDto(
         c.Id, c.Folio, c.Fecha, c.VigenciaDias, c.FechaVencimiento,
         c.ProspectoId, c.ClienteId, CotizacionResumenDto.NombreDestinatario(c),
         c.EmpleadoId, c.Empleado?.NombreCompleto,
-        c.Estatus, c.Notas, c.Subtotal, c.Iva, c.Total,
+        c.Estatus, c.Notas, c.Moneda, c.TipoCambio, c.Atencion, c.Subtotal, c.Iva, c.Total,
         c.Partidas.OrderBy(p => p.Id)
             .Select(p => new PartidaDto(p.Id, p.ProductoId, p.Descripcion, p.Cantidad,
                                         p.PrecioUnitario, p.DescuentoPorcentaje, p.Importe))
@@ -59,6 +60,16 @@ public class GuardarCotizacionRequest
 
     [StringLength(2000)]
     public string? Notas { get; set; }
+
+    [EnumDataType(typeof(Moneda))]
+    public Moneda Moneda { get; set; } = Moneda.MXN;
+
+    /// <summary>Pesos por dólar; obligatorio si la moneda es USD.</summary>
+    [Range(0.0001, 1000)]
+    public decimal? TipoCambio { get; set; }
+
+    [StringLength(150)]
+    public string? Atencion { get; set; }
 
     [MinLength(1, ErrorMessage = "La cotización debe tener al menos una partida.")]
     public List<GuardarPartidaRequest> Partidas { get; set; } = [];

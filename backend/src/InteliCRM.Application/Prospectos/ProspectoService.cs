@@ -89,10 +89,21 @@ public class ProspectoService(IAppDbContext db)
         var cliente = new Cliente
         {
             RazonSocial = string.IsNullOrWhiteSpace(prospecto.Empresa) ? prospecto.NombreCompleto : prospecto.Empresa,
+            TipoPersona = string.IsNullOrWhiteSpace(prospecto.Empresa) ? TipoPersona.Fisica : TipoPersona.Moral,
+            Rfc = prospecto.Rfc,
             ContactoPrincipal = prospecto.NombreCompleto,
             Telefono = prospecto.Telefono,
-            Correo = prospecto.Correo
+            Correo = prospecto.Correo,
+            Direccion = DomicilioEnTexto(prospecto),
         };
+        cliente.Contactos.Add(new ContactoCliente
+        {
+            Nombre = prospecto.NombreCompleto, Puesto = prospecto.Cargo, Telefono = prospecto.Telefono,
+            Correo = prospecto.Correo, Principal = true,
+        });
+        // El RFC es único por cuenta: si otro cliente ya lo tiene, se deja vacío en lugar de fallar.
+        if (cliente.Rfc != null && await db.Clientes.AnyAsync(c => c.Rfc == cliente.Rfc, ct))
+            cliente.Rfc = null;
 
         prospecto.Cliente = cliente;
         prospecto.Etapa = EtapaProspecto.Ganado;
@@ -135,6 +146,8 @@ public class ProspectoService(IAppDbContext db)
             throw new NoEncontradoException("Empleado", empleadoId);
         if (req.AccionActividadId is { } accionId && !await db.AccionesActividades.AnyAsync(a => a.Id == accionId, ct))
             throw new NoEncontradoException("Acción/actividad", accionId);
+        if (req.FechaAviso is { } aviso && aviso < (req.Fecha ?? DateTime.Now).Date)
+            throw new ReglaNegocioException("La fecha de aviso no puede ser anterior a la de la entrada.");
 
         var entrada = new BitacoraEntrada
         {
@@ -142,7 +155,8 @@ public class ProspectoService(IAppDbContext db)
             Fecha = req.Fecha ?? DateTime.Now,
             Descripcion = req.Descripcion.Trim(),
             EmpleadoId = req.EmpleadoId,
-            AccionActividadId = req.AccionActividadId
+            AccionActividadId = req.AccionActividadId,
+            FechaAviso = req.FechaAviso,
         };
         db.Bitacora.Add(entrada);
         await db.SaveChangesAsync(ct);
@@ -153,7 +167,79 @@ public class ProspectoService(IAppDbContext db)
         return BitacoraDto.Desde(guardada);
     }
 
+    // ---------- Seguimiento ----------
+
+    /// <summary>Avisos de seguimiento sin atender (vencidos, de hoy y próximos).</summary>
+    public async Task<List<BitacoraDto>> AvisosAsync(int? empleadoId, CancellationToken ct)
+    {
+        var avisos = await db.Bitacora.AsNoTracking()
+            .Include(b => b.Prospecto).Include(b => b.Empleado).Include(b => b.AccionActividad)
+            .Where(b => b.FechaAviso != null && !b.AvisoAtendido && b.Prospecto!.Activo)
+            .Where(b => empleadoId == null || b.EmpleadoId == empleadoId || b.Prospecto!.EmpleadoResponsableId == empleadoId)
+            .OrderBy(b => b.FechaAviso)
+            .ToListAsync(ct);
+        return avisos.Select(BitacoraDto.Desde).ToList();
+    }
+
+    public async Task<BitacoraDto> AtenderAvisoAsync(int bitacoraId, CancellationToken ct)
+    {
+        var entrada = await db.Bitacora.Include(b => b.Prospecto).Include(b => b.Empleado).Include(b => b.AccionActividad)
+                          .FirstOrDefaultAsync(b => b.Id == bitacoraId, ct)
+                      ?? throw new NoEncontradoException("Entrada de bitácora", bitacoraId);
+        if (entrada.FechaAviso is null)
+            throw new ReglaNegocioException("Esta entrada no tiene aviso.");
+        entrada.AvisoAtendido = true;
+        await db.SaveChangesAsync(ct);
+        return BitacoraDto.Desde(entrada);
+    }
+
+    /// <summary>Bitácora de todos los prospectos en un día (antes "Bitácora del día").</summary>
+    public async Task<List<BitacoraDto>> BitacoraDelDiaAsync(DateOnly fecha, int? empleadoId, CancellationToken ct)
+    {
+        var inicio = fecha.ToDateTime(TimeOnly.MinValue);
+        var entradas = await db.Bitacora.AsNoTracking()
+            .Include(b => b.Prospecto).Include(b => b.Empleado).Include(b => b.AccionActividad)
+            .Where(b => b.Fecha >= inicio && b.Fecha < inicio.AddDays(1))
+            .Where(b => empleadoId == null || b.EmpleadoId == empleadoId)
+            .OrderByDescending(b => b.Fecha)
+            .ToListAsync(ct);
+        return entradas.Select(BitacoraDto.Desde).ToList();
+    }
+
+    /// <summary>
+    /// Prospectos en seguimiento (no ganados ni perdidos) sin entradas de bitácora en los últimos
+    /// <paramref name="dias"/> días o sin ninguna (antes "Prospectos sin bitácora").
+    /// </summary>
+    public async Task<List<ProspectoSinSeguimientoDto>> SinSeguimientoAsync(int dias, int? empleadoId, CancellationToken ct)
+    {
+        var limite = DateTime.Now.AddDays(-dias);
+        var prospectos = await db.Prospectos.AsNoTracking()
+            .Where(p => p.Activo && p.Etapa != EtapaProspecto.Ganado && p.Etapa != EtapaProspecto.Perdido)
+            .Where(p => empleadoId == null || p.EmpleadoResponsableId == empleadoId)
+            .Select(p => new
+            {
+                p.Id, p.Nombre, p.Apellidos, p.Empresa, p.Etapa, p.FechaCreacion,
+                Responsable = p.EmpleadoResponsable != null ? p.EmpleadoResponsable.Nombre + " " + p.EmpleadoResponsable.Apellidos : null,
+                Ultima = p.Bitacora.Max(b => (DateTime?)b.Fecha),
+            })
+            .ToListAsync(ct);
+
+        return prospectos
+            .Where(p => (p.Ultima ?? p.FechaCreacion) < limite)
+            .Select(p => new ProspectoSinSeguimientoDto(p.Id, $"{p.Nombre} {p.Apellidos}".Trim(), p.Empresa, p.Etapa,
+                p.Responsable, p.Ultima, (int)(DateTime.Now - (p.Ultima ?? p.FechaCreacion)).TotalDays))
+            .OrderByDescending(p => p.DiasSinSeguimiento)
+            .ToList();
+    }
+
     // ---------- Auxiliares ----------
+
+    private static string? DomicilioEnTexto(Prospecto p)
+    {
+        var partes = new[] { p.Calle, p.Colonia, p.CodigoPostal is null ? null : $"C.P. {p.CodigoPostal}", p.Ciudad, p.Estado }
+            .Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+        return partes.Count > 0 ? string.Join(", ", partes) : null;
+    }
 
     private IQueryable<Prospecto> Consulta() =>
         db.Prospectos.AsNoTracking().Include(p => p.EmpleadoResponsable).Include(p => p.UnidadNegocio);
@@ -172,6 +258,8 @@ public class ProspectoService(IAppDbContext db)
 
     private static void Aplicar(Prospecto p, GuardarProspectoRequest req)
     {
+        if (req.FechaNacimiento is { } nacimiento && nacimiento > DateOnly.FromDateTime(DateTime.Today))
+            throw new ReglaNegocioException("La fecha de nacimiento no puede ser futura.");
         p.Nombre = req.Nombre.Trim();
         p.Apellidos = req.Apellidos.Trim();
         p.Empresa = req.Empresa?.Trim();
@@ -179,6 +267,13 @@ public class ProspectoService(IAppDbContext db)
         p.Telefono = req.Telefono?.Trim();
         p.Correo = req.Correo?.Trim();
         p.Origen = req.Origen?.Trim();
+        p.Rfc = string.IsNullOrWhiteSpace(req.Rfc) ? null : req.Rfc.Trim().ToUpper();
+        p.FechaNacimiento = req.FechaNacimiento;
+        p.Calle = string.IsNullOrWhiteSpace(req.Calle) ? null : req.Calle.Trim();
+        p.Colonia = string.IsNullOrWhiteSpace(req.Colonia) ? null : req.Colonia.Trim();
+        p.CodigoPostal = string.IsNullOrWhiteSpace(req.CodigoPostal) ? null : req.CodigoPostal.Trim();
+        p.Ciudad = string.IsNullOrWhiteSpace(req.Ciudad) ? null : req.Ciudad.Trim();
+        p.Estado = string.IsNullOrWhiteSpace(req.Estado) ? null : req.Estado.Trim();
         p.Etapa = req.Etapa;
         p.ValorEstimado = req.ValorEstimado;
         p.Notas = req.Notas?.Trim();

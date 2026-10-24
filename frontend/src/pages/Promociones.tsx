@@ -54,13 +54,14 @@ function DetallePromocion({ id, onCerrar }: { id: number; onCerrar: () => void }
   )
 }
 
-function FormPromocion({ onCerrar }: { onCerrar: () => void }) {
+/** Envío masivo. `iniciales` preselecciona destinatarios (claves "Prospecto-12", "Cliente-3"). */
+export function FormPromocion({ onCerrar, iniciales }: { onCerrar: () => void; iniciales?: string[] }) {
   const confirmar = useConfirmar()
   const enviar = useEnviarPromocion()
   const { data: destinatarios, isLoading } = useDestinatarios()
   const [f, setF] = useState({ nombre: '', canal: 'Sms' as CanalMensaje, asunto: '', mensaje: '' })
   const [buscar, setBuscar] = useState('')
-  const [elegidos, setElegidos] = useState<Set<string>>(new Set())
+  const [elegidos, setElegidos] = useState<Set<string>>(new Set(iniciales))
 
   const contacto = (d: Destinatario) => (f.canal === 'Sms' ? d.celular : d.correo)
   const visibles = useMemo(() => {

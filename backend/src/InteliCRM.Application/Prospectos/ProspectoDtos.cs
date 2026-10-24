@@ -7,6 +7,7 @@ namespace InteliCRM.Application.Prospectos;
 public record ProspectoDto(
     int Id, string Nombre, string Apellidos, string NombreCompleto,
     string? Empresa, string? Cargo, string? Telefono, string? Correo, string? Origen,
+    string? Rfc, DateOnly? FechaNacimiento, string? Calle, string? Colonia, string? CodigoPostal, string? Ciudad, string? Estado,
     EtapaProspecto Etapa, decimal? ValorEstimado, string? Notas, bool Activo,
     int? EmpleadoResponsableId, string? EmpleadoResponsable,
     int? UnidadNegocioId, string? UnidadNegocio,
@@ -15,6 +16,7 @@ public record ProspectoDto(
     public static ProspectoDto Desde(Prospecto p) => new(
         p.Id, p.Nombre, p.Apellidos, p.NombreCompleto,
         p.Empresa, p.Cargo, p.Telefono, p.Correo, p.Origen,
+        p.Rfc, p.FechaNacimiento, p.Calle, p.Colonia, p.CodigoPostal, p.Ciudad, p.Estado,
         p.Etapa, p.ValorEstimado, p.Notas, p.Activo,
         p.EmpleadoResponsableId, p.EmpleadoResponsable?.NombreCompleto,
         p.UnidadNegocioId, p.UnidadNegocio?.Nombre,
@@ -44,6 +46,26 @@ public class GuardarProspectoRequest
     [StringLength(100)]
     public string? Origen { get; set; }
 
+    [RegularExpression("^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$", ErrorMessage = "El RFC no tiene un formato válido.")]
+    public string? Rfc { get; set; }
+
+    public DateOnly? FechaNacimiento { get; set; }
+
+    [StringLength(200)]
+    public string? Calle { get; set; }
+
+    [StringLength(100)]
+    public string? Colonia { get; set; }
+
+    [RegularExpression("^[0-9]{5}$", ErrorMessage = "El código postal debe tener 5 dígitos.")]
+    public string? CodigoPostal { get; set; }
+
+    [StringLength(100)]
+    public string? Ciudad { get; set; }
+
+    [StringLength(100)]
+    public string? Estado { get; set; }
+
     [EnumDataType(typeof(EtapaProspecto))]
     public EtapaProspecto Etapa { get; set; }
 
@@ -65,13 +87,16 @@ public class CambiarEtapaRequest
 }
 
 public record BitacoraDto(
-    int Id, int ProspectoId, DateTime Fecha, string Descripcion,
-    int? EmpleadoId, string? Empleado, int? AccionActividadId, string? AccionActividad)
+    int Id, int ProspectoId, string? Prospecto, DateTime Fecha, string Descripcion,
+    int? EmpleadoId, string? Empleado, int? AccionActividadId, string? AccionActividad,
+    DateTime? FechaAviso, bool AvisoAtendido)
 {
+    /// <summary>Requiere Empleado y AccionActividad cargados; Prospecto es opcional (vistas generales).</summary>
     public static BitacoraDto Desde(BitacoraEntrada b) => new(
-        b.Id, b.ProspectoId, b.Fecha, b.Descripcion,
+        b.Id, b.ProspectoId, b.Prospecto?.NombreCompleto, b.Fecha, b.Descripcion,
         b.EmpleadoId, b.Empleado?.NombreCompleto,
-        b.AccionActividadId, b.AccionActividad?.Nombre);
+        b.AccionActividadId, b.AccionActividad?.Nombre,
+        b.FechaAviso, b.AvisoAtendido);
 }
 
 public class AgregarBitacoraRequest
@@ -84,4 +109,12 @@ public class AgregarBitacoraRequest
 
     public int? EmpleadoId { get; set; }
     public int? AccionActividadId { get; set; }
+
+    /// <summary>Fecha para retomar el seguimiento (aparece en Avisos).</summary>
+    public DateTime? FechaAviso { get; set; }
 }
+
+/// <summary>Prospecto activo sin seguimiento reciente.</summary>
+public record ProspectoSinSeguimientoDto(
+    int Id, string Nombre, string? Empresa, EtapaProspecto Etapa, string? EmpleadoResponsable,
+    DateTime? UltimaBitacora, int DiasSinSeguimiento);

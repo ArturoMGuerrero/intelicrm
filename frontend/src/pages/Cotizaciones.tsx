@@ -45,12 +45,12 @@ export default function Cotizaciones() {
           }>
           {data.map((c) => (
             <Fila key={c.id} onClick={() => navegar(`/cotizaciones/${c.id}`)}>
-              <Celda className="font-medium text-marca-600">{c.folio}</Celda>
+              <Celda className="font-medium text-marca-700">{c.folio}</Celda>
               <Celda><Doble principal={<span className="font-normal">{c.destinatario}</span>} secundario={c.empleado} /></Celda>
               <Celda className="whitespace-nowrap text-slate-600">{formatoFecha(c.fecha)}</Celda>
               <Celda className="whitespace-nowrap text-slate-600">{formatoFecha(c.fechaVencimiento)}</Celda>
               <Celda><Insignia tono={tonoEstatusCotizacion[c.estatus]}>{c.estatus}</Insignia></Celda>
-              <Celda derecha className="font-medium tabular-nums">{formatoMoneda(c.total)}</Celda>
+              <Celda derecha className="font-medium tabular-nums">{formatoMoneda(c.total, c.moneda)}</Celda>
             </Fila>
           ))}
         </Tabla>

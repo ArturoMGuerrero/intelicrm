@@ -7,7 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InteliCRM.Application.Catalogos;
 
-public record CatalogoDto(int Id, string Nombre, string? Descripcion, bool Activo, int? DuracionMinutos, int? DiasCredito);
+public record CatalogoDto(
+    int Id, string Nombre, string? Descripcion, bool Activo, int? DuracionMinutos, int? DiasCredito,
+    string? NombreCorto, decimal? MargenPorcentaje);
 
 public class GuardarCatalogoRequest
 {
@@ -26,6 +28,14 @@ public class GuardarCatalogoRequest
     /// <summary>Solo aplica a Condiciones de pago.</summary>
     [Range(0, 365)]
     public int? DiasCredito { get; set; }
+
+    /// <summary>Solo aplica a Categorías de productos.</summary>
+    [StringLength(20)]
+    public string? NombreCorto { get; set; }
+
+    /// <summary>Solo aplica a Categorías de productos: margen sobre el costo (%).</summary>
+    [Range(0, 1000)]
+    public decimal? MargenPorcentaje { get; set; }
 }
 
 /// <summary>
@@ -95,8 +105,14 @@ public class CatalogoService<T>(IAppDbContext db) where T : CatalogoBase, new()
             accion.DuracionMinutos = minutos;
         if (item is CondicionPago condicion && req.DiasCredito is { } dias)
             condicion.DiasCredito = dias;
+        if (item is CategoriaProducto categoria)
+        {
+            categoria.NombreCorto = string.IsNullOrWhiteSpace(req.NombreCorto) ? null : req.NombreCorto.Trim();
+            categoria.MargenPorcentaje = req.MargenPorcentaje;
+        }
     }
 
     private static CatalogoDto ADto(T x) =>
-        new(x.Id, x.Nombre, x.Descripcion, x.Activo, (x as AccionActividad)?.DuracionMinutos, (x as CondicionPago)?.DiasCredito);
+        new(x.Id, x.Nombre, x.Descripcion, x.Activo, (x as AccionActividad)?.DuracionMinutos, (x as CondicionPago)?.DiasCredito,
+            (x as CategoriaProducto)?.NombreCorto, (x as CategoriaProducto)?.MargenPorcentaje);
 }

@@ -19,6 +19,13 @@ export default function FormProspecto({ prospecto, onCerrar }: { prospecto?: Pro
     telefono: prospecto?.telefono ?? '',
     correo: prospecto?.correo ?? '',
     origen: prospecto?.origen ?? '',
+    rfc: prospecto?.rfc ?? '',
+    fechaNacimiento: prospecto?.fechaNacimiento ?? '',
+    calle: prospecto?.calle ?? '',
+    colonia: prospecto?.colonia ?? '',
+    codigoPostal: prospecto?.codigoPostal ?? '',
+    ciudad: prospecto?.ciudad ?? '',
+    estado: prospecto?.estado ?? '',
     etapa: prospecto?.etapa ?? ('Nuevo' as EtapaProspecto),
     valorEstimado: prospecto?.valorEstimado?.toString() ?? '',
     empleadoResponsableId: prospecto?.empleadoResponsableId?.toString() ?? '',
@@ -36,6 +43,8 @@ export default function FormProspecto({ prospecto, onCerrar }: { prospecto?: Pro
         datos: {
           nombre: f.nombre, apellidos: f.apellidos, empresa: nulo(f.empresa), cargo: nulo(f.cargo),
           telefono: nulo(f.telefono), correo: nulo(f.correo), origen: nulo(f.origen), etapa: f.etapa,
+          rfc: nulo(f.rfc.toUpperCase()), fechaNacimiento: nulo(f.fechaNacimiento), calle: nulo(f.calle), colonia: nulo(f.colonia),
+          codigoPostal: nulo(f.codigoPostal), ciudad: nulo(f.ciudad), estado: nulo(f.estado),
           valorEstimado: numeroONulo(f.valorEstimado),
           empleadoResponsableId: numeroONulo(f.empleadoResponsableId),
           unidadNegocioId: numeroONulo(f.unidadNegocioId),
@@ -90,6 +99,24 @@ export default function FormProspecto({ prospecto, onCerrar }: { prospecto?: Pro
             {f.origen && !ORIGENES.includes(f.origen) && <option value={f.origen}>{f.origen}</option>}
           </Select>
         </Campo>
+        <details className="group rounded-lg border border-slate-200 sm:col-span-2" open={!!(f.rfc || f.fechaNacimiento || f.calle || f.ciudad)}>
+          <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-slate-700 select-none">Datos personales y domicilio</summary>
+          <div className="grid gap-4 border-t border-slate-200 p-3 sm:grid-cols-2">
+            <Campo etiqueta="RFC" error={err('rfc')}>
+              <Input className="font-mono uppercase" maxLength={13} value={f.rfc} onChange={cambiar('rfc')} />
+            </Campo>
+            <Campo etiqueta="Fecha de nacimiento" error={err('fechaNacimiento')}>
+              <Input type="date" max={new Date().toISOString().slice(0, 10)} value={f.fechaNacimiento} onChange={cambiar('fechaNacimiento')} />
+            </Campo>
+            <Campo etiqueta="Calle y número" className="sm:col-span-2"><Input value={f.calle} onChange={cambiar('calle')} /></Campo>
+            <Campo etiqueta="Colonia"><Input value={f.colonia} onChange={cambiar('colonia')} /></Campo>
+            <Campo etiqueta="Código postal" error={err('codigoPostal')}>
+              <Input inputMode="numeric" maxLength={5} value={f.codigoPostal} onChange={cambiar('codigoPostal')} />
+            </Campo>
+            <Campo etiqueta="Ciudad"><Input value={f.ciudad} onChange={cambiar('ciudad')} /></Campo>
+            <Campo etiqueta="Estado"><Input value={f.estado} onChange={cambiar('estado')} /></Campo>
+          </div>
+        </details>
         <Campo etiqueta="Notas" className="sm:col-span-2">
           <Textarea value={f.notas} onChange={cambiar('notas')} />
         </Campo>

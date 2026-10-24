@@ -33,7 +33,7 @@ export function Tarjeta({ titulo, acciones, children, className, sinRelleno = fa
   titulo?: ReactNode; acciones?: ReactNode; children: ReactNode; className?: string; sinRelleno?: boolean
 }) {
   return (
-    <section className={cn('rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/60', !sinRelleno && 'p-5', className)}>
+    <section className={cn('rounded-2xl border border-slate-200/70 bg-superficie shadow-sm shadow-slate-200/60', !sinRelleno && 'p-5', className)}>
       {(titulo || acciones) && (
         <div className={cn('mb-4 flex items-center justify-between gap-3', sinRelleno && 'mb-0 px-5 pt-5 pb-4')}>
           {titulo && <h2 className="font-semibold text-slate-900">{titulo}</h2>}
@@ -113,11 +113,11 @@ export function Segmentos<T extends string>({ opciones, valor, onCambiar, etique
   opciones: { valor: T; texto: string }[]; valor: T; onCambiar: (v: T) => void; etiqueta: string
 }) {
   return (
-    <div role="tablist" aria-label={etiqueta} className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 shadow-xs">
+    <div role="tablist" aria-label={etiqueta} className="inline-flex rounded-lg border border-slate-200 bg-superficie p-0.5 shadow-xs">
       {opciones.map((o) => (
         <button key={o.valor} type="button" role="tab" aria-selected={valor === o.valor} onClick={() => onCambiar(o.valor)}
           className={cn('rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-            valor === o.valor ? 'bg-marca-600 text-white shadow-sm' : 'text-slate-600 hover:bg-marca-50 hover:text-marca-700')}>
+            valor === o.valor ? 'bg-marca-600 text-white shadow-sm' : 'text-slate-600 hover:bg-marca-50 hover:text-marca-800')}>
           {o.texto}
         </button>
       ))}
@@ -134,7 +134,7 @@ export function FiltroChips<T extends string>({ opciones, valor, onCambiar }: {
       {opciones.map((o) => (
         <button key={o.valor || 'todos'} type="button" aria-pressed={valor === o.valor} onClick={() => onCambiar(o.valor)}
           className={cn('rounded-full px-3 py-1 text-sm font-medium transition-colors',
-            valor === o.valor ? 'bg-marca-600 text-white shadow-sm' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-marca-50 hover:text-marca-700 hover:ring-marca-200')}>
+            valor === o.valor ? 'bg-marca-600 text-white shadow-sm' : 'bg-superficie text-slate-600 ring-1 ring-slate-200 hover:bg-marca-50 hover:text-marca-800 hover:ring-marca-200')}>
           {o.texto}
         </button>
       ))}

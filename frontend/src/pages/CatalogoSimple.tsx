@@ -15,10 +15,12 @@ interface Props {
   conDuracion?: boolean
   /** Solo Condiciones de pago tienen días de crédito. */
   conDiasCredito?: boolean
+  /** Solo Categorías de productos tienen nombre corto y margen. */
+  conMargen?: boolean
 }
 
 /** Página genérica para los catálogos simples (permiso "catalogos"). */
-export default function CatalogoSimple({ ruta, titulo, descripcion, conDuracion = false, conDiasCredito = false }: Props) {
+export default function CatalogoSimple({ ruta, titulo, descripcion, conDuracion = false, conDiasCredito = false, conMargen = false }: Props) {
   const confirmar = useConfirmar()
   const [inactivos, setInactivos] = useState(false)
   const [editando, setEditando] = useState<Catalogo | 'nuevo' | null>(null)
@@ -34,6 +36,7 @@ export default function CatalogoSimple({ ruta, titulo, descripcion, conDuracion 
     { titulo: 'Nombre' }, { titulo: 'Descripción' },
     ...(conDuracion ? [{ titulo: 'Duración', derecha: true }] : []),
     ...(conDiasCredito ? [{ titulo: 'Días de crédito', derecha: true }] : []),
+    ...(conMargen ? [{ titulo: 'Clave' }, { titulo: 'Margen sugerido', derecha: true }] : []),
     { titulo: '' },
   ]
 
@@ -57,6 +60,8 @@ export default function CatalogoSimple({ ruta, titulo, descripcion, conDuracion 
               <Celda className="text-slate-600">{c.descripcion ?? '—'}</Celda>
               {conDuracion && <Celda derecha className="text-slate-600 tabular-nums">{c.duracionMinutos} min</Celda>}
               {conDiasCredito && <Celda derecha className="text-slate-600 tabular-nums">{c.diasCredito ? `${c.diasCredito} días` : 'Contado'}</Celda>}
+              {conMargen && <Celda className="font-mono text-xs text-slate-600">{c.nombreCorto ?? '—'}</Celda>}
+              {conMargen && <Celda derecha className="text-slate-600 tabular-nums">{c.margenPorcentaje != null ? `${c.margenPorcentaje} %` : '—'}</Celda>}
               <CeldaAcciones>
                 <SiPuede permiso="catalogos.editar"><BotonIcono icono="editar" etiqueta="Editar" onClick={() => setEditando(c)} /></SiPuede>
                 {c.activo && <SiPuede permiso="catalogos.eliminar"><BotonIcono icono="basura" etiqueta="Dar de baja" peligro onClick={() => darDeBaja(c)} /></SiPuede>}
@@ -67,20 +72,21 @@ export default function CatalogoSimple({ ruta, titulo, descripcion, conDuracion 
       )}
 
       {editando && (
-        <FormCatalogo ruta={ruta} titulo={titulo} conDuracion={conDuracion} conDiasCredito={conDiasCredito}
+        <FormCatalogo ruta={ruta} titulo={titulo} conDuracion={conDuracion} conDiasCredito={conDiasCredito} conMargen={conMargen}
           item={editando === 'nuevo' ? undefined : editando} onCerrar={() => setEditando(null)} />
       )}
     </>
   )
 }
 
-function FormCatalogo({ ruta, titulo, conDuracion, conDiasCredito, item, onCerrar }: {
-  ruta: RutaCatalogo; titulo: string; conDuracion: boolean; conDiasCredito: boolean; item?: Catalogo; onCerrar: () => void
+function FormCatalogo({ ruta, titulo, conDuracion, conDiasCredito, conMargen, item, onCerrar }: {
+  ruta: RutaCatalogo; titulo: string; conDuracion: boolean; conDiasCredito: boolean; conMargen: boolean; item?: Catalogo; onCerrar: () => void
 }) {
   const guardar = useGuardarCatalogo(ruta)
   const [f, setF] = useState({
     nombre: item?.nombre ?? '', descripcion: item?.descripcion ?? '',
     duracionMinutos: item?.duracionMinutos?.toString() ?? '30', diasCredito: item?.diasCredito?.toString() ?? '0',
+    nombreCorto: item?.nombreCorto ?? '', margenPorcentaje: item?.margenPorcentaje?.toString() ?? '',
     activo: item?.activo ?? true,
   })
   const err = (c: string) => errorDeCampo(guardar.error, c)
@@ -93,6 +99,8 @@ function FormCatalogo({ ruta, titulo, conDuracion, conDiasCredito, item, onCerra
         nombre: f.nombre, descripcion: nulo(f.descripcion), activo: f.activo,
         duracionMinutos: conDuracion ? Number(f.duracionMinutos) : null,
         diasCredito: conDiasCredito ? Number(f.diasCredito) : null,
+        nombreCorto: conMargen ? nulo(f.nombreCorto) : null,
+        margenPorcentaje: conMargen && f.margenPorcentaje !== '' ? Number(f.margenPorcentaje) : null,
       },
     }, { onSuccess: onCerrar })
   }
@@ -117,6 +125,16 @@ function FormCatalogo({ ruta, titulo, conDuracion, conDiasCredito, item, onCerra
             <Input className="w-32" type="number" min="0" max="365" value={f.diasCredito}
               onChange={(e) => setF({ ...f, diasCredito: e.target.value })} required />
           </Campo>
+        )}
+        {conMargen && (
+          <div className="grid grid-cols-2 gap-4">
+            <Campo etiqueta="Clave corta" error={err('nombreCorto')}>
+              <Input className="font-mono uppercase" maxLength={20} value={f.nombreCorto} onChange={(e) => setF({ ...f, nombreCorto: e.target.value })} />
+            </Campo>
+            <Campo etiqueta="Margen sobre costo (%)" ayuda="Sugiere el precio: costo + margen." error={err('margenPorcentaje')}>
+              <Input type="number" min="0" max="1000" step="0.5" value={f.margenPorcentaje} onChange={(e) => setF({ ...f, margenPorcentaje: e.target.value })} />
+            </Campo>
+          </div>
         )}
         {item && <Checkbox etiqueta="Activo" checked={f.activo} onChange={(e) => setF({ ...f, activo: e.target.checked })} />}
         <PieFormulario error={guardar.error} guardando={guardar.isPending} onCancelar={onCerrar} />

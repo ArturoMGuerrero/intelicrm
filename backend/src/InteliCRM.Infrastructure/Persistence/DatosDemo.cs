@@ -42,6 +42,58 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
         }
     }
 
+    /// <summary>
+    /// Arranque sin datos de ejemplo: si la base está vacía, crea solo la empresa, los roles base,
+    /// catálogos mínimos de pago y actividades, y el usuario administrador indicado.
+    /// </summary>
+    public async Task CrearCuentaInicialAsync(string empresa, string nombre, string correo, string password, CancellationToken ct = default)
+    {
+        if (await db.Cuentas.AnyAsync(ct))
+            return;
+
+        try
+        {
+            var cuenta = new Cuenta { Nombre = empresa, FechaCreacion = DateTime.Now };
+            db.Cuentas.Add(cuenta);
+            await db.SaveChangesAsync(ct);
+            db.UsarCuenta(cuenta.Id);
+
+            db.InstrumentosPago.AddRange(new InstrumentoPago { Nombre = "Efectivo" }, new InstrumentoPago { Nombre = "Transferencia electrónica" },
+                new InstrumentoPago { Nombre = "Tarjeta de crédito/débito" }, new InstrumentoPago { Nombre = "Cheque" });
+            db.CondicionesPago.AddRange(new CondicionPago { Nombre = "Contado", DiasCredito = 0 },
+                new CondicionPago { Nombre = "Crédito 30 días", DiasCredito = 30 }, new CondicionPago { Nombre = "Crédito 60 días", DiasCredito = 60 });
+            db.AccionesActividades.AddRange(
+                new AccionActividad { Nombre = "Llamada", DuracionMinutos = 15 },
+                new AccionActividad { Nombre = "Videollamada", DuracionMinutos = 30 },
+                new AccionActividad { Nombre = "Visita presencial", DuracionMinutos = 90 },
+                new AccionActividad { Nombre = "Correo", DuracionMinutos = 10 });
+
+            var admin = new Rol { Nombre = "Administrador", Descripcion = "Acceso total al sistema.", EsAdministrador = true };
+            db.Roles.AddRange(admin,
+                new Rol
+                {
+                    Nombre = "Gerente comercial", Descripcion = "Todo lo comercial y catálogos; sin administrar usuarios.",
+                    Permisos = Permisos.Todos.Where(p => !p.StartsWith("usuarios.") && !p.StartsWith("roles.")).ToList(),
+                },
+                new Rol
+                {
+                    Nombre = "Vendedor", Descripcion = "Da seguimiento a prospectos, agenda citas y cotiza. Solo consulta catálogos.",
+                    Permisos =
+                    [
+                        "prospectos.ver", "prospectos.editar", "citas.ver", "citas.editar", "citas.eliminar",
+                        "cotizaciones.ver", "cotizaciones.editar", "clientes.ver", "productos.ver", "empleados.ver", "catalogos.ver",
+                    ],
+                });
+            await db.SaveChangesAsync(ct);
+
+            await CrearUsuarioAsync(cuenta.Id, nombre, correo, password, admin, null);
+        }
+        finally
+        {
+            db.UsarCuenta(null);
+        }
+    }
+
     private async Task CargarCuentaPrincipalAsync(CancellationToken ct)
     {
         var cuenta = new Cuenta { Nombre = "Comercializadora Demo", FechaCreacion = DateTime.Now };
@@ -80,6 +132,18 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
         var soporteAnual = new Producto { Codigo = "SRV-SOP", Nombre = "Soporte premium (anual)", Tipo = TipoProducto.Servicio, Precio = 8000 };
         db.Productos.AddRange(licencia, licenciaPro, implementacion, capacitacion, soporteAnual);
 
+        var catLicencias = new CategoriaProducto { Nombre = "Licencias", NombreCorto = "LIC", MargenPorcentaje = 60 };
+        var catServicios = new CategoriaProducto { Nombre = "Servicios profesionales", NombreCorto = "SRV", MargenPorcentaje = 40 };
+        db.CategoriasProducto.AddRange(catLicencias, catServicios);
+        licencia.Categoria = catLicencias;
+        licencia.UnidadMedida = "Licencia";
+        licencia.PrecioMayoreo = 10800;
+        licencia.CantidadMayoreo = 10;
+        licenciaPro.Categoria = catLicencias;
+        licenciaPro.UnidadMedida = "Licencia";
+        foreach (var servicio in new[] { implementacion, capacitacion, soporteAnual })
+            servicio.Categoria = catServicios;
+
         // ---------- Clientes ----------
         var clienteAcme = new Cliente { RazonSocial = "Distribuidora Acme S.A. de C.V.", NombreComercial = "Acme", Rfc = "DAC010101AB1", ContactoPrincipal = "Jorge Pérez", Telefono = "5540001111", Correo = "compras@acme.ejemplo.com", Direccion = "Av. Reforma 100, CDMX" };
         var clienteNorte = new Cliente { RazonSocial = "Grupo Industrial del Norte S.A. de C.V.", NombreComercial = "GIN", Rfc = "GIN050505XY2", ContactoPrincipal = "Laura Garza", Telefono = "8180002222", Correo = "lgarza@gin.ejemplo.com", Direccion = "Monterrey, N.L." };
@@ -95,7 +159,22 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
             new CondicionPago { Nombre = "Crédito 60 días", DiasCredito = 60 });
 
         var contactoVentas = new TipoContacto { Nombre = "Ventas" };
-        db.TiposContacto.AddRange(contactoVentas, new TipoContacto { Nombre = "Cobranza" }, new TipoContacto { Nombre = "Soporte" });
+        var contactoCobranza = new TipoContacto { Nombre = "Cobranza" };
+        db.TiposContacto.AddRange(contactoVentas, contactoCobranza, new TipoContacto { Nombre = "Soporte" });
+
+        // Datos completos de Acme: contactos, dirección de entrega, pagos y contrarecibo.
+        clienteAcme.Zona = "Centro";
+        clienteAcme.CondicionPago = credito30;
+        clienteAcme.InstrumentoPago = transferencia;
+        clienteAcme.Banco = "BBVA";
+        clienteAcme.NumeroCuenta = "4821";
+        clienteAcme.DiasRevision = "Martes,Jueves";
+        clienteAcme.HoraRevisionDesde = new TimeOnly(9, 0);
+        clienteAcme.HoraRevisionHasta = new TimeOnly(13, 0);
+        clienteAcme.InstruccionesContrarecibo = "Entregar factura y orden de compra en recepción de cuentas por pagar.";
+        clienteAcme.Contactos.Add(new ContactoCliente { Nombre = "Jorge Pérez", Puesto = "Gerente de compras", TipoContacto = contactoVentas, Telefono = "5540001111", Extension = "204", Correo = "compras@acme.ejemplo.com", Principal = true });
+        clienteAcme.Contactos.Add(new ContactoCliente { Nombre = "Patricia Ruiz", Puesto = "Cuentas por pagar", TipoContacto = contactoCobranza, Telefono = "5540001112", Correo = "pagos@acme.ejemplo.com" });
+        clienteAcme.Direcciones.Add(new DireccionCliente { Nombre = "Almacén Vallejo", Calle = "Calle Poniente 140", NumeroExterior = "725", Colonia = "Industrial Vallejo", CodigoPostal = "02300", Municipio = "Azcapotzalco", Estado = "Ciudad de México", Instrucciones = "Recepción de 8:00 a 14:00, andén 3.", Principal = true });
 
         db.DescripcionesServicio.AddRange(
             new DescripcionServicio { Nombre = "Implementación de CRM", Descripcion = "Configuración inicial, carga de datos y puesta en marcha." },
@@ -165,8 +244,8 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
         db.Bitacora.AddRange(
             new BitacoraEntrada { Prospecto = p2, Empleado = sofia, AccionActividad = llamada, Fecha = hoy.AddDays(-3).AddHours(11), Descripcion = "Primer contacto. Interesada en digitalizar la agenda de la clínica." },
             new BitacoraEntrada { Prospecto = p3, Empleado = ana, AccionActividad = videollamada, Fecha = hoy.AddDays(-5).AddHours(10), Descripcion = "Levantamiento de necesidades: 40 usuarios, 3 sucursales." },
-            new BitacoraEntrada { Prospecto = p3, Empleado = ana, AccionActividad = correo, Fecha = hoy.AddDays(-2).AddHours(16), Descripcion = "Se envió información de la licencia profesional." },
-            new BitacoraEntrada { Prospecto = p4, Empleado = carlos, AccionActividad = demo, Fecha = hoy.AddDays(-1).AddHours(13), Descripcion = "Demostración realizada. Pidió cotización con capacitación." },
+            new BitacoraEntrada { Prospecto = p3, Empleado = ana, AccionActividad = correo, Fecha = hoy.AddDays(-2).AddHours(16), Descripcion = "Se envió información de la licencia profesional.", FechaAviso = hoy.AddDays(2).AddHours(10) },
+            new BitacoraEntrada { Prospecto = p4, Empleado = carlos, AccionActividad = demo, Fecha = hoy.AddDays(-1).AddHours(13), Descripcion = "Demostración realizada. Pidió cotización con capacitación.", FechaAviso = hoy.AddHours(9) },
             new BitacoraEntrada { Prospecto = p5, Empleado = sofia, AccionActividad = visita, Fecha = hoy.AddDays(-4).AddHours(12), Descripcion = "Revisión de propuesta con el director. Solicita 10% de descuento." });
 
         // ---------- Citas ----------
@@ -174,6 +253,7 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
             new Cita { Prospecto = p1, Empleado = carlos, AccionActividad = llamada, FechaHoraInicio = hoy.AddHours(10), DuracionMinutos = 15, Estatus = EstatusCita.Confirmada, Notas = "Presentación inicial" },
             new Cita { Prospecto = p3, Empleado = ana, AccionActividad = demo, FechaHoraInicio = hoy.AddHours(12), DuracionMinutos = 60, Estatus = EstatusCita.Programada },
             new Cita { Prospecto = p5, Empleado = sofia, AccionActividad = videollamada, FechaHoraInicio = hoy.AddHours(17), DuracionMinutos = 30, Estatus = EstatusCita.Programada, Notas = "Cerrar condiciones de descuento" },
+            new Cita { Cliente = clienteAcme, Empleado = ana, AccionActividad = visita, FechaHoraInicio = hoy.AddDays(1).AddHours(11), DuracionMinutos = 60, Estatus = EstatusCita.Programada, Lugar = "Almacén Vallejo, andén 3", Notas = "Revisión de pedido trimestral" },
             new Cita { Prospecto = p2, Empleado = sofia, AccionActividad = visita, FechaHoraInicio = hoy.AddDays(1).AddHours(11), DuracionMinutos = 90, Estatus = EstatusCita.Programada },
             new Cita { Prospecto = p6, Empleado = carlos, AccionActividad = llamada, FechaHoraInicio = hoy.AddDays(2).AddHours(9).AddMinutes(30), DuracionMinutos = 15, Estatus = EstatusCita.Programada },
             new Cita { Prospecto = p4, Empleado = carlos, AccionActividad = demo, FechaHoraInicio = hoy.AddDays(-1).AddHours(13), DuracionMinutos = 60, Estatus = EstatusCita.Realizada });

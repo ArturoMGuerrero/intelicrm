@@ -60,7 +60,7 @@ export function AvisosCita({ cita }: { cita: Cita }) {
   )
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-      <p className="mb-2 text-sm font-medium text-slate-700">Avisar al prospecto</p>
+      <p className="mb-2 text-sm font-medium text-slate-700">Avisar por SMS o correo</p>
       <div className="flex flex-wrap gap-2">
         {boton('ConfirmacionCita', 'Sms', 'Confirmación por SMS')}
         {boton('ConfirmacionCita', 'Correo', 'Confirmación por correo')}

@@ -89,11 +89,11 @@ function Formulario({ empresa }: { empresa: ConfiguracionEmpresa }) {
           <Tarjeta titulo="Logo">
             <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50">
               {f.logo ? <img src={f.logo} alt="Logo de la empresa" className="max-h-36 max-w-full object-contain" />
-                : <span className="text-sm text-slate-400">Sin logo</span>}
+                : <span className="text-sm text-slate-500">Sin logo</span>}
             </div>
             {editable && (
               <div className="mt-3 flex flex-wrap gap-2">
-                <label className="cursor-pointer rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm hover:border-marca-200 hover:bg-marca-50 hover:text-marca-700">
+                <label className="cursor-pointer rounded-lg border border-slate-200 bg-superficie px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm hover:border-marca-200 hover:bg-marca-50 hover:text-marca-800">
                   Elegir imagen
                   <input type="file" accept="image/png,image/jpeg" className="sr-only" onChange={elegirLogo} />
                 </label>

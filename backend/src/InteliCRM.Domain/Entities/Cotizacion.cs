@@ -24,6 +24,13 @@ public class Cotizacion : EntidadBase
     public DateOnly Fecha { get; set; }
     public int VigenciaDias { get; set; } = 15;
     public EstatusCotizacion Estatus { get; set; } = EstatusCotizacion.Borrador;
+
+    /// <summary>Moneda de los precios. En dólares se guarda el tipo de cambio para convertir al generar el cargo.</summary>
+    public Moneda Moneda { get; set; } = Moneda.MXN;
+    public decimal? TipoCambio { get; set; }
+
+    /// <summary>"A la atención de": persona del cliente o prospecto a quien va dirigida (se guarda el texto).</summary>
+    public string? Atencion { get; set; }
     public string? Notas { get; set; }
 
     public decimal Subtotal { get; private set; }

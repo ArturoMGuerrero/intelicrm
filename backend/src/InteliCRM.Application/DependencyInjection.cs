@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<FormatoService>();
         services.AddScoped<SoporteService>();
         services.AddScoped<DashboardService>();
+        services.AddScoped<BarraSuperiorService>();
         services.AddScoped<AuthService>();
         services.AddScoped<UsuarioService>();
         services.AddScoped<RolService>();

@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { useDashboard } from '../api/hooks'
 import type { EtapaProspecto } from '../api/tipos'
 import { Cargando, cn, Encabezado, Icono, Insignia, MensajeError, Tarjeta, Vacio, type NombreIcono } from '../components/ui'
-import { etiquetaEstatusCita, etiquetaEtapa, tonoEstatusCita } from '../lib/etiquetas'
+import { etiquetaEstatusCita, etiquetaEtapa, rutaDeCita, tonoEstatusCita } from '../lib/etiquetas'
 import { formatoDiaLargo, formatoFechaHora, formatoHora, formatoMoneda } from '../lib/formato'
 import { useSesion } from '../sesion/Sesion'
 
@@ -99,8 +99,8 @@ export default function Inicio() {
                 <li key={c.id} className="flex gap-3 py-3">
                   <span className="mt-1 h-10 w-1 shrink-0 rounded-full" style={{ background: c.colorEmpleado }} />
                   <div className="min-w-0 flex-1">
-                    <Link to={`/prospectos/${c.prospectoId}`} className="block truncate font-medium text-slate-900 hover:underline">
-                      {c.prospecto}
+                    <Link to={rutaDeCita(c)} className="block truncate font-medium text-slate-900 hover:underline">
+                      {c.con}
                     </Link>
                     <p className="truncate text-xs text-slate-500">{c.accionActividad ?? 'Cita'} · {c.empleado}</p>
                   </div>

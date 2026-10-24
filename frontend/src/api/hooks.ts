@@ -7,6 +7,7 @@ import type {
   Rol, Sucursal, Usuario, Cargo, CargoResumen, CuentaPorPagar, CuentaPorPagarResumen, FiltroEstadoSaldo, ResumenSaldos,
   BloqueHorario, ConfiguracionEmpresa, EstatusOrdenCompra, Existencia, Faltante, ListaPrecios, ListaPreciosResumen,
   MovimientoInventario, OrdenCompra, OrdenCompraResumen,
+  Aviso, ResultadoBusqueda, ProspectoSinSeguimiento,
   CanalMensaje, Destinatario, EstadoMensajeria, Formato, MensajeEnviado, Plantilla, Promocion, TicketSoporte, TipoPlantilla,
 } from './tipos'
 
@@ -55,10 +56,23 @@ function useGuardar<T>(ruta: string, entidad: string) {
 export const useDashboard = () =>
   useQuery({ queryKey: ['dashboard'], queryFn: () => api.get<Dashboard>('/dashboard') })
 
+// ---------- Barra superior ----------
+export const useBusquedaGeneral = (texto: string) =>
+  useQuery({
+    queryKey: ['busqueda-general', texto],
+    queryFn: () => api.get<ResultadoBusqueda[]>(`/barra/buscar${qs({ q: texto })}`),
+    enabled: texto.trim().length >= 2,
+    placeholderData: (anterior) => anterior,
+  })
+
+/** Avisos de la campana; se refrescan cada 2 minutos. */
+export const useAvisos = () =>
+  useQuery({ queryKey: ['avisos'], queryFn: () => api.get<Aviso[]>('/barra/avisos'), refetchInterval: 120_000 })
+
 // ---------- Catálogos simples ----------
 export type RutaCatalogo =
   | 'puestos' | 'unidades-negocio' | 'acciones-actividades' | 'tipos-contacto' | 'descripciones-servicio'
-  | 'instrumentos-pago' | 'condiciones-pago'
+  | 'instrumentos-pago' | 'condiciones-pago' | 'categorias-producto'
 
 export const useCatalogo = (ruta: RutaCatalogo, incluirInactivos = false) =>
   useQuery({
@@ -183,10 +197,33 @@ export const useBitacora = (prospectoId: number) =>
 
 export const useAgregarBitacora = (prospectoId: number) =>
   useMutacion(
-    (datos: { descripcion: string; empleadoId?: number | null; accionActividadId?: number | null }) =>
+    (datos: { descripcion: string; empleadoId?: number | null; accionActividadId?: number | null; fechaAviso?: string | null }) =>
       api.post<BitacoraEntrada>(`/prospectos/${prospectoId}/bitacora`, datos),
     { exito: 'Nota agregada a la bitácora.', errorEnToast: false },
   )
+
+// ---------- Seguimiento ----------
+export const useAvisosSeguimiento = (empleadoId?: number | '') =>
+  useQuery({
+    queryKey: ['seguimiento', 'avisos', empleadoId],
+    queryFn: () => api.get<BitacoraEntrada[]>(`/seguimiento/avisos${qs({ empleadoId })}`),
+  })
+
+export const useBitacoraDelDia = (fecha: string, empleadoId?: number | '') =>
+  useQuery({
+    queryKey: ['seguimiento', 'dia', fecha, empleadoId],
+    queryFn: () => api.get<BitacoraEntrada[]>(`/seguimiento/bitacora-del-dia${qs({ fecha, empleadoId })}`),
+  })
+
+export const useSinSeguimiento = (dias: number, empleadoId?: number | '') =>
+  useQuery({
+    queryKey: ['seguimiento', 'sin', dias, empleadoId],
+    queryFn: () => api.get<ProspectoSinSeguimiento[]>(`/seguimiento/sin-seguimiento${qs({ dias, empleadoId })}`),
+  })
+
+export const useAtenderAviso = () =>
+  useMutacion((bitacoraId: number) => api.patch<BitacoraEntrada>(`/seguimiento/avisos/${bitacoraId}/atendido`, {}),
+    { exito: 'Aviso marcado como atendido.' })
 
 // ---------- Citas ----------
 export interface FiltroCitas {
@@ -194,6 +231,7 @@ export interface FiltroCitas {
   hasta?: string
   empleadoId?: number | ''
   prospectoId?: number
+  clienteId?: number
 }
 
 export const useCitas = (filtro: FiltroCitas, habilitado = true) =>

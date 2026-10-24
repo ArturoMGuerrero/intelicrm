@@ -62,7 +62,7 @@ function ResumenPermisos({ modulos, permisos }: { modulos: ModuloPermiso[]; perm
   const conAcceso = modulos
     .map((m) => ({ m, acciones: m.acciones.filter((a) => permisos.includes(`${m.clave}.${a}`)) }))
     .filter((x) => x.acciones.length > 0)
-  if (conAcceso.length === 0) return <p className="text-sm text-slate-400">Sin permisos.</p>
+  if (conAcceso.length === 0) return <p className="text-sm text-slate-500">Sin permisos.</p>
   return (
     <ul className="space-y-1.5 text-sm">
       {conAcceso.map(({ m, acciones }) => (
@@ -142,7 +142,7 @@ function FormRol({ rol, modulos, onCerrar }: { rol?: Rol; modulos: ModuloPermiso
                   {modulos.filter((m) => m.grupo === g).map((m) => (
                     <tr key={m.clave} className="border-t border-slate-100 hover:bg-slate-50">
                       <td className="px-4 py-2">
-                        <button type="button" onClick={() => alternarModulo(m)} className="text-left text-slate-800 hover:text-marca-700" title="Marcar o desmarcar todo el módulo">
+                        <button type="button" onClick={() => alternarModulo(m)} className="text-left text-slate-800 hover:text-marca-800" title="Marcar o desmarcar todo el módulo">
                           {m.nombre}
                         </button>
                       </td>

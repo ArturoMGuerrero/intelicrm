@@ -119,11 +119,22 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference(o => o.WithTitle("InteliCRM API")).AllowAnonymous();
 
     // Aplica las migraciones pendientes y, si la base está vacía, carga datos de ejemplo.
+    // Con "Arranque:CargarDemo" = false crea solo la empresa y el administrador de "Arranque:Admin"
+    // (correo y contraseña por user-secrets, nunca en el repositorio).
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     if (db.Database.IsRelational())
         await db.Database.MigrateAsync();
-    await scope.ServiceProvider.GetRequiredService<DatosDemo>().CargarAsync();
+    var arranque = app.Configuration.GetSection("Arranque");
+    var datosIniciales = scope.ServiceProvider.GetRequiredService<DatosDemo>();
+    if (arranque.GetValue("CargarDemo", true))
+        await datosIniciales.CargarAsync();
+    else
+        await datosIniciales.CrearCuentaInicialAsync(
+            arranque["Empresa"] ?? "Mi empresa",
+            arranque["Admin:Nombre"] ?? "Administrador",
+            arranque["Admin:Correo"] ?? throw new InvalidOperationException("Falta Arranque:Admin:Correo (user-secrets)."),
+            arranque["Admin:Password"] ?? throw new InvalidOperationException("Falta Arranque:Admin:Password (user-secrets)."));
 }
 else
 {

@@ -16,7 +16,7 @@ export function Tabla({ columnas, children, pie, className }: {
   columnas: Columna[]; children: ReactNode; pie?: ReactNode; className?: string
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm shadow-slate-200/60">
+    <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-superficie shadow-sm shadow-slate-200/60">
       <div className="overflow-x-auto">
         <table className={cn('w-full text-left text-sm', className)}>
           <thead>

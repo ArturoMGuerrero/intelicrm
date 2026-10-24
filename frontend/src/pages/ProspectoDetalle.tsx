@@ -1,18 +1,21 @@
 import { useState, type FormEvent } from 'react'
+import { api } from '../api/cliente'
 import { Link, useNavigate, useParams } from 'react-router'
 import {
-  useAgregarBitacora, useBitacora, useCambiarEtapa, useCatalogo, useCitas, useConvertirEnCliente,
-  useCotizaciones, useDesactivarProspecto, useEmpleados, useProspecto,
+  useAgregarBitacora, useAtenderAviso, useBitacora, useCambiarEtapa, useCatalogo, useCitas, useConvertirEnCliente,
+  useCotizaciones, useDesactivarProspecto, useEmpleados, useFormatos, useProspecto,
 } from '../api/hooks'
+import EstadoCuenta from '../components/EstadoCuenta'
 import FormCita from '../components/FormCita'
 import FormProspecto from '../components/FormProspecto'
 import {
-  Boton, BotonEnlace, Cargando, cn, Icono, Insignia, ListaDatos, MensajeError, Select, Tarjeta, Textarea, useConfirmar, Vacio,
+  Boton, BotonEnlace, Cargando, cn, Icono, Input, Insignia, ListaDatos, MensajeError, notificar, Select, Tarjeta, Textarea,
+  useConfirmar, Vacio,
 } from '../components/ui'
 import {
   ETAPAS, etiquetaEstatusCita, etiquetaEtapa, tonoEstatusCita, tonoEstatusCotizacion, tonoEtapa,
 } from '../lib/etiquetas'
-import { formatoFecha, formatoFechaHora, formatoMoneda } from '../lib/formato'
+import { aIsoFechaHora, formatoFecha, formatoFechaHora, formatoMoneda } from '../lib/formato'
 import { SiPuede, useSesion } from '../sesion/Sesion'
 
 export default function ProspectoDetalle() {
@@ -25,7 +28,7 @@ export default function ProspectoDetalle() {
   const convertir = useConvertirEnCliente()
   const desactivar = useDesactivarProspecto()
   const [editando, setEditando] = useState(false)
-  const [nuevaCita, setNuevaCita] = useState(false)
+  const [nuevaCita, setNuevaCita] = useState<{ notas?: string } | null>(null)
 
   if (isLoading) return <Cargando />
   if (error || !p) return <MensajeError error={error ?? new Error('Prospecto no encontrado.')} />
@@ -62,7 +65,7 @@ export default function ProspectoDetalle() {
             <Boton icono="editar" onClick={() => setEditando(true)}>Editar</Boton>
           </SiPuede>
           <SiPuede permiso="citas.editar">
-            <Boton icono="citas" onClick={() => setNuevaCita(true)}>Agendar cita</Boton>
+            <Boton icono="citas" onClick={() => setNuevaCita({})}>Agendar cita</Boton>
           </SiPuede>
           <SiPuede permiso="cotizaciones.editar">
             <BotonEnlace icono="cotizaciones" to={`/cotizaciones/nueva?prospectoId=${p.id}`}>Cotizar</BotonEnlace>
@@ -99,6 +102,9 @@ export default function ProspectoDetalle() {
             <ListaDatos datos={[
               ['Correo', p.correo],
               ['Teléfono', p.telefono],
+              ['RFC', p.rfc],
+              ['Nacimiento', p.fechaNacimiento && `${formatoFecha(p.fechaNacimiento)} (${edad(p.fechaNacimiento)} años)`],
+              ['Domicilio', [p.calle, p.colonia, p.codigoPostal && `C.P. ${p.codigoPostal}`, p.ciudad, p.estado].filter(Boolean).join(', ') || null],
               ['Origen', p.origen],
               ['Valor estimado', formatoMoneda(p.valorEstimado)],
               ['Responsable', p.empleadoResponsable],
@@ -114,19 +120,32 @@ export default function ProspectoDetalle() {
           </Tarjeta>
           <CitasProspecto prospectoId={p.id} />
           <CotizacionesProspecto prospectoId={p.id} />
+          <SiPuede permiso="cargos.ver">
+            <Tarjeta titulo="Estado de cuenta"><EstadoCuenta prospectoId={p.id} nombre={p.nombreCompleto} compacto /></Tarjeta>
+          </SiPuede>
+          <FormatosDescargables />
         </div>
         <div className="xl:col-span-2">
-          <Bitacora prospectoId={p.id} puedeAgregar={puedeEditar} />
+          <Bitacora prospectoId={p.id} puedeAgregar={puedeEditar} onAgendar={(notas) => setNuevaCita({ notas })} />
         </div>
       </div>
 
       {editando && <FormProspecto prospecto={p} onCerrar={() => setEditando(false)} />}
-      {nuevaCita && <FormCita prospectoId={p.id} onCerrar={() => setNuevaCita(false)} />}
+      {nuevaCita && <FormCita prospectoId={p.id} notas={nuevaCita.notas} onCerrar={() => setNuevaCita(null)} />}
     </>
   )
 }
 
-function Bitacora({ prospectoId, puedeAgregar }: { prospectoId: number; puedeAgregar: boolean }) {
+/** Edad cumplida a partir de la fecha de nacimiento (yyyy-mm-dd). */
+function edad(nacimiento: string) {
+  const [a, m, d] = nacimiento.split('-').map(Number)
+  const hoy = new Date()
+  return hoy.getFullYear() - a - (hoy.getMonth() + 1 < m || (hoy.getMonth() + 1 === m && hoy.getDate() < d) ? 1 : 0)
+}
+
+function Bitacora({ prospectoId, puedeAgregar, onAgendar }: {
+  prospectoId: number; puedeAgregar: boolean; onAgendar: (notas: string) => void
+}) {
   const { usuario } = useSesion()
   const { data, isLoading } = useBitacora(prospectoId)
   const agregar = useAgregarBitacora(prospectoId)
@@ -135,14 +154,29 @@ function Bitacora({ prospectoId, puedeAgregar }: { prospectoId: number; puedeAgr
   const [descripcion, setDescripcion] = useState('')
   const [empleadoId, setEmpleadoId] = useState(usuario?.empleadoId?.toString() ?? '')
   const [accionId, setAccionId] = useState('')
+  const [fechaAviso, setFechaAviso] = useState('')
+  const atender = useAtenderAviso()
 
-  const enviar = (e: FormEvent) => {
-    e.preventDefault()
+  // "Guardar y agendar cita": guarda la nota y abre la cita con la nota como referencia.
+  const guardarNota = (agendar: boolean) => {
     if (!descripcion.trim()) return
     agregar.mutate(
-      { descripcion, empleadoId: empleadoId ? Number(empleadoId) : null, accionActividadId: accionId ? Number(accionId) : null },
-      { onSuccess: () => setDescripcion('') },
+      {
+        descripcion, empleadoId: empleadoId ? Number(empleadoId) : null, accionActividadId: accionId ? Number(accionId) : null,
+        fechaAviso: fechaAviso || null,
+      },
+      {
+        onSuccess: () => {
+          if (agendar) onAgendar(descripcion)
+          setDescripcion('')
+          setFechaAviso('')
+        },
+      },
     )
+  }
+  const enviar = (e: FormEvent) => {
+    e.preventDefault()
+    guardarNota(false)
   }
 
   return (
@@ -160,7 +194,17 @@ function Bitacora({ prospectoId, puedeAgregar }: { prospectoId: number; puedeAgr
               <option value="">Empleado…</option>
               {empleados.data?.map((e) => <option key={e.id} value={e.id}>{e.nombreCompleto}</option>)}
             </Select>
-            <Boton type="submit" variante="primario" className="sm:ml-auto" cargando={agregar.isPending} disabled={!descripcion.trim()}>
+            <label className="flex items-center gap-2 text-sm text-slate-600 sm:min-w-56 sm:flex-1" title="Ese día aparecerá en Avisos para retomar el seguimiento">
+              <Icono nombre="campana" className="h-4 w-4 shrink-0 text-slate-400" />
+              <Input type="datetime-local" value={fechaAviso} min={aIsoFechaHora(new Date())} onChange={(e) => setFechaAviso(e.target.value)}
+                aria-label="Fecha de aviso" />
+            </label>
+          </div>
+          <div className="flex flex-wrap justify-end gap-2">
+            <SiPuede permiso="citas.editar">
+              <Boton disabled={!descripcion.trim() || agregar.isPending} onClick={() => guardarNota(true)}>Guardar y agendar cita</Boton>
+            </SiPuede>
+            <Boton type="submit" variante="primario" cargando={agregar.isPending} disabled={!descripcion.trim()}>
               Agregar
             </Boton>
           </div>
@@ -179,6 +223,18 @@ function Bitacora({ prospectoId, puedeAgregar }: { prospectoId: number; puedeAgr
                 {b.empleado && <> · {b.empleado}</>}
               </p>
               <p className="mt-1 text-sm whitespace-pre-line text-slate-800">{b.descripcion}</p>
+              {b.fechaAviso && (
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  <Insignia tono={b.avisoAtendido ? 'gris' : new Date(b.fechaAviso) < new Date() ? 'rojo' : 'ambar'}>
+                    <Icono nombre="campana" className="mr-1 h-3 w-3" />
+                    {b.avisoAtendido ? 'Aviso atendido' : `Aviso ${formatoFechaHora(b.fechaAviso)}`}
+                  </Insignia>
+                  {!b.avisoAtendido && puedeAgregar && (
+                    <button type="button" className="text-xs font-medium text-marca-700 hover:underline" disabled={atender.isPending}
+                      onClick={() => atender.mutate(b.id)}>Marcar como atendido</button>
+                  )}
+                </div>
+              )}
             </li>
           ))}
         </ol>
@@ -217,13 +273,36 @@ function CotizacionesProspecto({ prospectoId }: { prospectoId: number }) {
         <ul className="space-y-2">
           {data.map((c) => (
             <li key={c.id} className="flex items-center justify-between gap-2 text-sm">
-              <Link to={`/cotizaciones/${c.id}`} className="font-medium text-marca-600 hover:underline">{c.folio}</Link>
+              <Link to={`/cotizaciones/${c.id}`} className="font-medium text-marca-700 hover:underline">{c.folio}</Link>
               <span className="text-slate-700 tabular-nums">{formatoMoneda(c.total)}</span>
               <Insignia tono={tonoEstatusCotizacion[c.estatus]}>{c.estatus}</Insignia>
             </li>
           ))}
         </ul>
       )}
+    </Tarjeta>
+  )
+}
+
+/** Formatos para descargar desde la ficha (antes "Seleccione un formato para descargar"). */
+function FormatosDescargables() {
+  const { puede } = useSesion()
+  const { data } = useFormatos()
+  if (!puede('formatos.ver') || !data?.length) return null
+  return (
+    <Tarjeta titulo="Formatos">
+      <ul className="space-y-1">
+        {data.map((f) => (
+          <li key={f.id}>
+            <button type="button" onClick={() => api.descargar(`/formatos/${f.id}/archivo`, f.nombreArchivo).catch(notificar.error)}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-50">
+              <Icono nombre="abajo" className="h-4 w-4 shrink-0 text-slate-400" />
+              <span className="truncate">{f.nombre}</span>
+              {f.categoria && <span className="ml-auto shrink-0 text-xs text-slate-500">{f.categoria}</span>}
+            </button>
+          </li>
+        ))}
+      </ul>
     </Tarjeta>
   )
 }

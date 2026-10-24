@@ -27,7 +27,7 @@ public static class Permisos
         new("productos", "Productos y servicios", "Catálogos"),
         new("empleados", "Empleados", "Catálogos"),
         new("proveedores", "Proveedores", "Catálogos"),
-        new("catalogos", "Catálogos simples (puestos, unidades, acciones, tipos y formas de pago)", "Catálogos"),
+        new("catalogos", "Catálogos simples (puestos, unidades, acciones, tipos, formas de pago y categorías de productos)", "Catálogos"),
         new("listas-precios", "Listas de precios", "Catálogos"),
         new("empresa", "Mi empresa (datos fiscales y cuentas bancarias)", "Configuración empresa"),
         new("sucursales", "Sucursales y almacenes", "Configuración empresa"),

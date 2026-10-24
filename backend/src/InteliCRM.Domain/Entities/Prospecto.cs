@@ -12,6 +12,15 @@ public class Prospecto : EntidadBase
     public string? Cargo { get; set; }
     public string? Telefono { get; set; }
     public string? Correo { get; set; }
+    public string? Rfc { get; set; }
+    public DateOnly? FechaNacimiento { get; set; }
+
+    // Domicilio
+    public string? Calle { get; set; }
+    public string? Colonia { get; set; }
+    public string? CodigoPostal { get; set; }
+    public string? Ciudad { get; set; }
+    public string? Estado { get; set; }
 
     /// <summary>Cómo llegó: recomendación, web, redes sociales, evento...</summary>
     public string? Origen { get; set; }

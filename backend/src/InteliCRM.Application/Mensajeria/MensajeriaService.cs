@@ -91,7 +91,8 @@ public class MensajeriaService(IAppDbContext db, IEnviadorMensajes enviador)
     public async Task<MensajeEnviadoDto> EnviarDeCitaAsync(int citaId, EnviarRecordatorioRequest req, CancellationToken ct)
     {
         var cita = await db.Citas.AsNoTracking()
-                       .Include(c => c.Prospecto).Include(c => c.Empleado).Include(c => c.AccionActividad)
+                       .Include(c => c.Prospecto).Include(c => c.Cliente).ThenInclude(x => x!.Contactos)
+                       .Include(c => c.Empleado).Include(c => c.AccionActividad)
                        .FirstOrDefaultAsync(c => c.Id == citaId, ct)
                    ?? throw new NoEncontradoException("Cita", citaId);
         if (cita.Estatus is EstatusCita.Cancelada or EstatusCita.Realizada or EstatusCita.NoAsistio)
@@ -99,15 +100,22 @@ public class MensajeriaService(IAppDbContext db, IEnviadorMensajes enviador)
         if (cita.FechaHoraInicio < DateTime.Now)
             throw new ReglaNegocioException("La cita ya pasó; no se envían confirmaciones ni recordatorios.");
 
+        // Con un cliente, el mensaje va a su contacto principal (o a los datos generales del cliente).
+        var contacto = cita.Cliente?.Contactos.FirstOrDefault(x => x.Principal) ?? cita.Cliente?.Contactos.FirstOrDefault();
+        var nombre = cita.Prospecto?.NombreCompleto ?? contacto?.Nombre ?? cita.Cliente?.ContactoPrincipal ?? cita.Cliente!.RazonSocial;
+        var celular = cita.Prospecto != null ? Celular(cita.Prospecto.Telefono)
+            : Celular(contacto?.Celular) ?? Celular(contacto?.Telefono) ?? Celular(cita.Cliente!.Telefono);
+        var correo = cita.Prospecto != null ? cita.Prospecto.Correo : contacto?.Correo ?? cita.Cliente!.Correo;
         var destino = req.Canal == CanalMensaje.Sms
-            ? Celular(cita.Prospecto!.Telefono) ?? throw new ReglaNegocioException($"{cita.Prospecto.NombreCompleto} no tiene un celular de 10 dígitos.")
-            : cita.Prospecto!.Correo ?? throw new ReglaNegocioException($"{cita.Prospecto.NombreCompleto} no tiene correo.");
+            ? celular ?? throw new ReglaNegocioException($"{nombre} no tiene un celular de 10 dígitos.")
+            : correo ?? throw new ReglaNegocioException($"{nombre} no tiene correo.");
 
         var plantilla = (await PlantillasAsync(ct)).First(p => p.Tipo == req.Tipo && p.Canal == req.Canal);
         var empresa = await NombreEmpresaAsync(ct);
         var valores = new Dictionary<string, string>
         {
-            ["{prospecto}"] = cita.Prospecto.NombreCompleto,
+            ["{prospecto}"] = nombre,
+            ["{lugar}"] = cita.Lugar ?? "",
             ["{fecha}"] = cita.FechaHoraInicio.ToString("dddd d 'de' MMMM", Mx),
             ["{hora}"] = cita.FechaHoraInicio.ToString("HH:mm", Mx),
             ["{ejecutivo}"] = cita.Empleado?.NombreCompleto ?? "",
@@ -116,14 +124,14 @@ public class MensajeriaService(IAppDbContext db, IEnviadorMensajes enviador)
         };
 
         var origen = req.Tipo == TipoPlantilla.ConfirmacionCita ? "Confirmación de cita" : "Recordatorio de cita";
-        var mensaje = await EnviarYRegistrarAsync(req.Canal, destino, cita.Prospecto.NombreCompleto,
+        var mensaje = await EnviarYRegistrarAsync(req.Canal, destino, nombre,
             plantilla.Asunto is null ? null : Reemplazar(plantilla.Asunto, valores), Reemplazar(plantilla.Cuerpo, valores),
             origen, citaId: cita.Id, promocionId: null, ct);
 
-        if (mensaje.Estatus != EstatusMensaje.Error)
+        if (mensaje.Estatus != EstatusMensaje.Error && cita.ProspectoId is { } prospectoId)
             db.Bitacora.Add(new BitacoraEntrada
             {
-                ProspectoId = cita.ProspectoId, EmpleadoId = cita.EmpleadoId, Fecha = DateTime.Now,
+                ProspectoId = prospectoId, EmpleadoId = cita.EmpleadoId, Fecha = DateTime.Now,
                 Descripcion = $"{origen} enviado por {(req.Canal == CanalMensaje.Sms ? "SMS" : "correo")} a {destino}" +
                               (mensaje.Estatus == EstatusMensaje.Simulado ? " (simulado)." : "."),
             });

@@ -20,6 +20,16 @@ public abstract class CatalogoConfig<T>(string tabla) : IEntityTypeConfiguration
 }
 
 public class TipoContactoConfig() : CatalogoConfig<TipoContacto>("TiposContacto");
+public class CategoriaProductoConfig() : CatalogoConfig<CategoriaProducto>("CategoriasProducto");
+
+public class CategoriaProductoDetalleConfig : IEntityTypeConfiguration<CategoriaProducto>
+{
+    public void Configure(EntityTypeBuilder<CategoriaProducto> b)
+    {
+        b.Property(x => x.NombreCorto).HasMaxLength(20);
+        b.Property(x => x.MargenPorcentaje).HasPrecision(9, 2);
+    }
+}
 public class DescripcionServicioConfig() : CatalogoConfig<DescripcionServicio>("DescripcionesServicio");
 public class InstrumentoPagoConfig() : CatalogoConfig<InstrumentoPago>("InstrumentosPago");
 public class CondicionPagoConfig() : CatalogoConfig<CondicionPago>("CondicionesPago");

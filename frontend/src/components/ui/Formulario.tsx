@@ -6,7 +6,7 @@ import { Icono } from './Icono'
 import { MensajeError } from './Estructura'
 
 const claseControl =
-  'block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-xs ' +
+  'block w-full rounded-lg border border-slate-200 bg-superficie px-3 py-2 text-sm text-slate-800 shadow-xs ' +
   'placeholder:text-slate-400 focus:border-marca-400 focus:ring-4 focus:ring-marca-100 focus:outline-none ' +
   'disabled:bg-slate-100 disabled:text-slate-500 aria-invalid:border-red-400 aria-invalid:ring-red-100'
 

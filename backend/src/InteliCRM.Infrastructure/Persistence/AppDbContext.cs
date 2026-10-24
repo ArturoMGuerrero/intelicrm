@@ -22,6 +22,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options, IUsuarioActual
     public DbSet<Cotizacion> Cotizaciones => Set<Cotizacion>();
     public DbSet<Cliente> Clientes => Set<Cliente>();
     public DbSet<Producto> Productos => Set<Producto>();
+    public DbSet<CategoriaProducto> CategoriasProducto => Set<CategoriaProducto>();
     public DbSet<Empleado> Empleados => Set<Empleado>();
     public DbSet<Puesto> Puestos => Set<Puesto>();
     public DbSet<UnidadNegocio> UnidadesNegocio => Set<UnidadNegocio>();
