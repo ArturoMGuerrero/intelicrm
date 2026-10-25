@@ -128,6 +128,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi().AllowAnonymous();
     app.MapScalarApiReference(o => o.WithTitle("InteliCRM API")).AllowAnonymous();
+    // Abrir http://localhost:5205 en el navegador lleva a la documentación de la API (no a un 401 en blanco).
+    app.MapGet("/", () => Results.Redirect("/scalar")).AllowAnonymous().ExcludeFromDescription();
 
     // Aplica las migraciones pendientes y, si la base está vacía, carga datos de ejemplo.
     // Con "Arranque:CargarDemo" = false crea solo la empresa y el administrador de "Arranque:Admin"
