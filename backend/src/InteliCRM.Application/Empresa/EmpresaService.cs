@@ -1,3 +1,4 @@
+using InteliCRM.Domain.Common;
 using System.ComponentModel.DataAnnotations;
 using InteliCRM.Application.Common.Exceptions;
 using InteliCRM.Application.Common.Interfaces;
@@ -11,7 +12,7 @@ public record CuentaBancariaDto(int Id, string Banco, string? NumeroCuenta, stri
 public record ConfiguracionEmpresaDto(
     string RazonSocial, string? NombreComercial, string? Rfc, string? RegimenFiscal, string? CodigoPostal,
     string? Direccion, string? Telefono, string? Correo, string? SitioWeb, string? Logo,
-    string? SerieFactura, string? PieDocumentos, List<CuentaBancariaDto> CuentasBancarias);
+    string? SerieFactura, string? PieDocumentos, decimal TasaIvaPredeterminada, List<CuentaBancariaDto> CuentasBancarias);
 
 public class GuardarCuentaBancariaRequest
 {
@@ -67,6 +68,9 @@ public class GuardarEmpresaRequest
     [StringLength(1000)]
     public string? PieDocumentos { get; set; }
 
+    /// <summary>IVA para productos nuevos y conceptos libres: 0, 0.08 o 0.16.</summary>
+    public decimal TasaIvaPredeterminada { get; set; } = Iva.Predeterminada;
+
     public List<GuardarCuentaBancariaRequest> CuentasBancarias { get; set; } = [];
 }
 
@@ -80,7 +84,7 @@ public class EmpresaService(IAppDbContext db, IUsuarioActual usuario)
         {
             // Sin configurar: se propone el nombre de la cuenta como razón social.
             var nombre = await db.Cuentas.AsNoTracking().Where(c => c.Id == usuario.CuentaId).Select(c => c.Nombre).FirstOrDefaultAsync(ct) ?? "";
-            return new ConfiguracionEmpresaDto(nombre, null, null, null, null, null, null, null, null, null, null, null, []);
+            return new ConfiguracionEmpresaDto(nombre, null, null, null, null, null, null, null, null, null, null, null, Iva.Predeterminada, []);
         }
         return ADto(config);
     }
@@ -90,6 +94,8 @@ public class EmpresaService(IAppDbContext db, IUsuarioActual usuario)
         if (req.Logo is { Length: > 0 } logo &&
             !(logo.StartsWith("data:image/png;base64,") || logo.StartsWith("data:image/jpeg;base64,")))
             throw new ReglaNegocioException("El logo debe ser una imagen PNG o JPEG.");
+        if (!Iva.EsValida(req.TasaIvaPredeterminada))
+            throw new ReglaNegocioException("La tasa de IVA debe ser 0 %, 8 % o 16 %.");
 
         var config = await db.ConfiguracionesEmpresa.Include(c => c.CuentasBancarias).FirstOrDefaultAsync(ct);
         if (config is null)
@@ -110,6 +116,7 @@ public class EmpresaService(IAppDbContext db, IUsuarioActual usuario)
         config.Logo = string.IsNullOrWhiteSpace(req.Logo) ? null : req.Logo;
         config.SerieFactura = req.SerieFactura?.Trim().ToUpper();
         config.PieDocumentos = req.PieDocumentos?.Trim();
+        config.TasaIvaPredeterminada = req.TasaIvaPredeterminada;
 
         // Las cuentas bancarias se reemplazan completas.
         config.CuentasBancarias.Clear();
@@ -126,6 +133,6 @@ public class EmpresaService(IAppDbContext db, IUsuarioActual usuario)
 
     private static ConfiguracionEmpresaDto ADto(ConfiguracionEmpresa c) => new(
         c.RazonSocial, c.NombreComercial, c.Rfc, c.RegimenFiscal, c.CodigoPostal, c.Direccion, c.Telefono,
-        c.Correo, c.SitioWeb, c.Logo, c.SerieFactura, c.PieDocumentos,
+        c.Correo, c.SitioWeb, c.Logo, c.SerieFactura, c.PieDocumentos, c.TasaIvaPredeterminada,
         c.CuentasBancarias.OrderBy(b => b.Id).Select(b => new CuentaBancariaDto(b.Id, b.Banco, b.NumeroCuenta, b.Clabe, b.Descripcion)).ToList());
 }

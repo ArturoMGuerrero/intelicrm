@@ -27,6 +27,9 @@ public class Producto : EntidadBase
 
     public decimal Precio { get; set; }
 
+    /// <summary>Tasa de IVA del producto (0, 0.08 o 0.16). Un cliente con tasa propia la reemplaza.</summary>
+    public decimal TasaIva { get; set; } = Iva.Predeterminada;
+
     /// <summary>Precio de mayoreo: se propone desde <see cref="CantidadMayoreo"/> unidades.</summary>
     public decimal? PrecioMayoreo { get; set; }
     public decimal? CantidadMayoreo { get; set; }

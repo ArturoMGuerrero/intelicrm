@@ -1,3 +1,4 @@
+using InteliCRM.Domain.Common;
 using System.ComponentModel.DataAnnotations;
 using InteliCRM.Application.Common.Exceptions;
 using InteliCRM.Application.Common.Interfaces;
@@ -58,8 +59,11 @@ public class GuardarCuentaPorPagarRequest
     [Range(0.01, 100_000_000, ErrorMessage = "El subtotal debe ser mayor a cero.")]
     public decimal Subtotal { get; set; }
 
-    /// <summary>Si es verdadero se agrega IVA del 16 %.</summary>
+    /// <summary>Si es falso no lleva IVA (compatibilidad); si es verdadero se usa <see cref="TasaIva"/>.</summary>
     public bool ConIva { get; set; } = true;
+
+    /// <summary>Tasa de IVA de la factura del proveedor (0, 0.08 o 0.16). Sin valor: 16 %.</summary>
+    public decimal? TasaIva { get; set; }
 
     [StringLength(2000)]
     public string? Notas { get; set; }
@@ -168,7 +172,7 @@ public class CuentaPorPagarService(IAppDbContext db)
     /// y guarda junto con la entrada al almacén.
     /// </summary>
     public async Task<CuentaPorPagar> NuevaDesdeCompraAsync(
-        OrdenCompra orden, DateOnly fecha, string? folioProveedor, decimal subtotal, CancellationToken ct)
+        OrdenCompra orden, DateOnly fecha, string? folioProveedor, decimal subtotal, decimal iva, CancellationToken ct)
     {
         var folio = string.IsNullOrWhiteSpace(folioProveedor) ? null : folioProveedor.Trim().ToUpper();
         if (folio is not null && await db.CuentasPorPagar.AnyAsync(c =>
@@ -183,7 +187,7 @@ public class CuentaPorPagarService(IAppDbContext db)
             Concepto = $"Recepción de la orden de compra {orden.Folio}", CondicionPagoId = orden.CondicionPagoId,
         };
         cuenta.FijarPlazo(fecha, orden.DiasCredito);
-        cuenta.FijarTotales(subtotal, subtotal * DocumentoConSaldo.TasaIva);
+        cuenta.FijarTotales(subtotal, iva);
         return cuenta;
     }
 
@@ -216,6 +220,9 @@ public class CuentaPorPagarService(IAppDbContext db)
         cuenta.CondicionPagoId = condicionId;
         cuenta.Notas = req.Notas?.Trim();
         cuenta.FijarPlazo(req.Fecha ?? Saldos.Hoy, dias);
-        cuenta.FijarTotales(req.Subtotal, req.ConIva ? req.Subtotal * DocumentoConSaldo.TasaIva : 0);
+        var tasa = req.ConIva ? req.TasaIva ?? Iva.Predeterminada : 0;
+        if (!Iva.EsValida(tasa))
+            throw new ReglaNegocioException("La tasa de IVA debe ser 0 %, 8 % o 16 %.");
+        cuenta.FijarTotales(req.Subtotal, Math.Round(req.Subtotal * tasa, 2));
     }
 }

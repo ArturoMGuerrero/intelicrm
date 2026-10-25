@@ -68,6 +68,7 @@ public class ClienteConfig : IEntityTypeConfiguration<Cliente>
         b.Property(x => x.Correo).HasMaxLength(150);
         b.Property(x => x.Direccion).HasMaxLength(500);
         b.Property(x => x.TipoPersona).HasConversion<string>().HasMaxLength(10);
+        b.Property(x => x.TasaIva).HasPrecision(5, 4);
         b.Property(x => x.Zona).HasMaxLength(100);
         b.Property(x => x.Banco).HasMaxLength(100);
         b.Property(x => x.NumeroCuenta).HasMaxLength(30);
@@ -129,6 +130,7 @@ public class ProductoConfig : IEntityTypeConfiguration<Producto>
         b.Property(x => x.Costo).HasPrecision(18, 4);
         b.Property(x => x.StockMinimo).HasPrecision(18, 4);
         b.Property(x => x.PrecioMayoreo).HasPrecision(18, 4);
+        b.Property(x => x.TasaIva).HasPrecision(5, 4);
         b.Property(x => x.CantidadMayoreo).HasPrecision(18, 4);
         b.Property(x => x.CodigoBarras).HasMaxLength(50);
         b.Property(x => x.CodigoAlterno).HasMaxLength(50);

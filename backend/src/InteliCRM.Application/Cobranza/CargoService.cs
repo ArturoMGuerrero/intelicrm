@@ -41,7 +41,7 @@ public record CargoDto(
         c.Notas, c.Estatus, c.MotivoCancelacion,
         c.Subtotal, c.Iva, c.Total, c.Pagado, c.Saldo, c.Estado(hoy), c.DiasVencido(hoy),
         c.Partidas.OrderBy(p => p.Id)
-            .Select(p => new PartidaDto(p.Id, p.ProductoId, p.Descripcion, p.Cantidad, p.PrecioUnitario, p.DescuentoPorcentaje, p.Importe))
+            .Select(p => new PartidaDto(p.Id, p.ProductoId, p.Descripcion, p.Cantidad, p.PrecioUnitario, p.DescuentoPorcentaje, p.Importe, p.TasaIva))
             .ToList(),
         c.Pagos.OrderBy(p => p.Fecha).ThenBy(p => p.Id).Select(PagoDto.Desde).ToList());
 }
@@ -141,7 +141,11 @@ public class CargoService(IAppDbContext db, InventarioService inventario)
         if (req.EmpleadoId is { } eId && !await db.Empleados.AnyAsync(e => e.Id == eId, ct))
             throw new NoEncontradoException("Empleado", eId);
 
-        var partidas = await Partidas.ValidarAsync(db, req.Partidas, ct);
+        var clienteEfectivo = req.ClienteId
+            ?? (req.ProspectoId is { } prospId
+                ? await db.Prospectos.AsNoTracking().Where(p => p.Id == prospId).Select(p => p.ClienteId).FirstOrDefaultAsync(ct)
+                : null);
+        var partidas = await Partidas.ValidarAsync(db, req.Partidas, clienteEfectivo, ct);
         var dias = await Saldos.DiasCreditoAsync(db, req.CondicionPagoId, req.DiasCredito, ct);
 
         var cargo = await NuevoCargoAsync(ct);
@@ -156,7 +160,7 @@ public class CargoService(IAppDbContext db, InventarioService inventario)
             cargo.Partidas.Add(new CargoPartida
             {
                 ProductoId = p.ProductoId, Descripcion = p.Descripcion, Cantidad = p.Cantidad,
-                PrecioUnitario = p.PrecioUnitario, DescuentoPorcentaje = p.DescuentoPorcentaje,
+                PrecioUnitario = p.PrecioUnitario, DescuentoPorcentaje = p.DescuentoPorcentaje, TasaIva = p.TasaIva,
             });
         cargo.RecalcularTotales();
 
@@ -198,7 +202,7 @@ public class CargoService(IAppDbContext db, InventarioService inventario)
             cargo.Partidas.Add(new CargoPartida
             {
                 ProductoId = p.ProductoId, Descripcion = p.Descripcion, Cantidad = p.Cantidad,
-                PrecioUnitario = Math.Round(p.PrecioUnitario * tipoCambio, 2), DescuentoPorcentaje = p.DescuentoPorcentaje,
+                PrecioUnitario = Math.Round(p.PrecioUnitario * tipoCambio, 2), DescuentoPorcentaje = p.DescuentoPorcentaje, TasaIva = p.TasaIva,
             });
         cargo.RecalcularTotales();
 

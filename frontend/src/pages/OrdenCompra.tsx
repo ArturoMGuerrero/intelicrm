@@ -6,7 +6,7 @@ import {
 } from '../api/hooks'
 import type { OrdenCompra as Orden } from '../api/tipos'
 import { InsigniaCompra } from '../components/Compras'
-import { TASA_IVA, Totales } from '../components/EditorPartidas'
+import { calcularIva, TASA_IVA, Totales } from '../components/EditorPartidas'
 import { FormCancelarDocumento } from '../components/Saldos'
 import {
   Aviso, Boton, BotonEnlace, BotonIcono, Campo, Cargando, Celda, Encabezado, Icono, Input, ListaDatos, MensajeError,
@@ -67,7 +67,11 @@ function Editor({ orden }: { orden?: Orden }) {
 
   const importe = (p: PartidaForm) => Math.round((Number(p.cantidad) || 0) * (Number(p.costoUnitario) || 0) * 100) / 100
   const subtotal = partidas.reduce((s, p) => s + importe(p), 0)
-  const iva = Math.round(subtotal * TASA_IVA * 100) / 100
+  // Cada producto lleva su tasa de IVA (la orden guardada conserva la de cada partida).
+  const tasaDe = (p: PartidaForm) =>
+    orden?.partidas.find((x) => x.productoId.toString() === p.productoId)?.tasaIva
+    ?? productos.find((x) => x.id === Number(p.productoId))?.tasaIva ?? TASA_IVA
+  const { iva, desglose } = calcularIva(partidas.map((p) => ({ importe: importe(p), tasa: tasaDe(p) })))
 
   const enviar = (e: FormEvent) => {
     e.preventDefault()
@@ -144,7 +148,7 @@ function Editor({ orden }: { orden?: Orden }) {
             <Boton icono="mas" className="self-start" onClick={() => setPartidas([...partidas, { clave: siguiente++, productoId: '', cantidad: '1', costoUnitario: '' }])}>
               Agregar producto
             </Boton>
-            <Totales subtotal={subtotal} iva={iva} total={subtotal + iva} />
+            <Totales subtotal={subtotal} iva={iva} total={subtotal + iva} desglose={desglose} />
           </Tarjeta>
         </div>
 
@@ -248,6 +252,9 @@ function FormRecepcion({ orden, onCerrar }: { orden: Orden; onCerrar: () => void
   const [cantidades, setCantidades] = useState<Record<number, string>>(() =>
     Object.fromEntries(pendientes.map((p) => [p.id, p.pendiente.toString()])))
   const subtotal = pendientes.reduce((s, p) => s + (Number(cantidades[p.id]) || 0) * p.costoUnitario, 0)
+  const { iva, desglose } = calcularIva(pendientes.map((p) => ({
+    importe: Math.round((Number(cantidades[p.id]) || 0) * p.costoUnitario * 100) / 100, tasa: p.tasaIva ?? TASA_IVA,
+  })))
 
   const enviar = (e: FormEvent) => {
     e.preventDefault()
@@ -287,7 +294,7 @@ function FormRecepcion({ orden, onCerrar }: { orden: Orden; onCerrar: () => void
           ))}
         </Tabla>
         <div className="flex justify-end">
-          <Totales subtotal={subtotal} iva={Math.round(subtotal * TASA_IVA * 100) / 100} total={subtotal + Math.round(subtotal * TASA_IVA * 100) / 100} />
+          <Totales subtotal={subtotal} iva={iva} total={subtotal + iva} desglose={desglose} />
         </div>
         <PieFormulario error={recibir.error} guardando={recibir.isPending} onCancelar={onCerrar} textoGuardar="Registrar recepción" />
       </form>

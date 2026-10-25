@@ -48,8 +48,6 @@ public class MovimientoInventario : EntidadBase
 /// <summary>Orden de compra a un proveedor (antes "Órdenes de compra" y "Aplicar compra").</summary>
 public class OrdenCompra : EntidadBase
 {
-    public const decimal TasaIva = 0.16m;
-
     public int Consecutivo { get; set; }
     public string Folio { get; set; } = string.Empty;
 
@@ -82,7 +80,7 @@ public class OrdenCompra : EntidadBase
     public void RecalcularTotales()
     {
         Subtotal = Math.Round(Partidas.Sum(p => p.Importe), 2);
-        Iva = Math.Round(Subtotal * TasaIva, 2);
+        Iva = Common.Iva.Calcular(Partidas.Select(p => (p.Importe, p.TasaIva)));
         Total = Subtotal + Iva;
     }
 
@@ -104,6 +102,9 @@ public class OrdenCompraPartida : EntidadBase
     public decimal Cantidad { get; set; }
     public decimal CantidadRecibida { get; set; }
     public decimal CostoUnitario { get; set; }
+
+    /// <summary>Tasa de IVA de la partida (la del producto al momento de la orden).</summary>
+    public decimal TasaIva { get; set; } = Iva.Predeterminada;
 
     public decimal Pendiente => Math.Max(0, Cantidad - CantidadRecibida);
     public decimal Importe => Math.Round(Cantidad * CostoUnitario, 2);
