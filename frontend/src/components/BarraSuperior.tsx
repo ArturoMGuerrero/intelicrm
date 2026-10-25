@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import { useAvisos, useBusquedaGeneral } from '../api/hooks'
 import type { Aviso, ResultadoBusqueda } from '../api/tipos'
 import { useSesion } from '../sesion/Sesion'
+import { IndicadorTipoCambio } from './TipoCambio'
 import { BotonIcono, cn, Icono, type NombreIcono } from './ui'
 
 const iconoTipo: Record<string, NombreIcono> = {
@@ -260,6 +261,7 @@ export default function BarraSuperior({ seccion, pantalla, detalle, onAbrirMenu,
       <div className="flex flex-1 justify-center xl:px-6"><BusquedaGeneral /></div>
 
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+        <IndicadorTipoCambio />
         <Avisos />
         <span className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" />
         <MenuUsuario onCambiarPassword={onCambiarPassword} />

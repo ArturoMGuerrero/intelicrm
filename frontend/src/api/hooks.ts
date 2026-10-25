@@ -7,7 +7,7 @@ import type {
   Rol, Sucursal, Usuario, Cargo, CargoResumen, CuentaPorPagar, CuentaPorPagarResumen, FiltroEstadoSaldo, ResumenSaldos,
   BloqueHorario, ConfiguracionEmpresa, EstatusOrdenCompra, Existencia, Faltante, ListaPrecios, ListaPreciosResumen,
   MovimientoInventario, OrdenCompra, OrdenCompraResumen,
-  Aviso, ResultadoBusqueda, ProspectoSinSeguimiento, EmpresaPlataforma,
+  Aviso, ResultadoBusqueda, ProspectoSinSeguimiento, EstadoTipoCambio, TipoCambio, EmpresaPlataforma,
   CanalMensaje, Destinatario, EstadoMensajeria, Formato, MensajeEnviado, Plantilla, Promocion, TicketSoporte, TipoPlantilla,
 } from './tipos'
 
@@ -555,3 +555,12 @@ export const useCrearEmpresa = () =>
 export const useCambiarEstadoEmpresa = () =>
   useMutacion(({ id, activa }: { id: number; activa: boolean }) => api.patch<EmpresaPlataforma>(`/plataforma/empresas/${id}/estado`, { activa }),
     { exito: (e) => `Empresa ${e.nombre} ${e.activa ? 'reactivada' : 'suspendida'}.` })
+
+// ---------- Tipo de cambio ----------
+/** Vigente y últimos registrados. El servidor consulta Banxico a lo más una vez por hora. */
+export const useTipoCambio = () =>
+  useQuery({ queryKey: ['tipo-cambio'], queryFn: () => api.get<EstadoTipoCambio>('/tipo-cambio'), staleTime: 30 * 60_000 })
+
+export const useRegistrarTipoCambio = () =>
+  useMutacion((datos: { fecha: string; valor: number }) => api.post<TipoCambio>('/tipo-cambio', datos),
+    { exito: 'Tipo de cambio registrado.', errorEnToast: false })

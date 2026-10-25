@@ -145,6 +145,18 @@ Hay que volver a iniciar sesión para que aparezca el menú. Al suspender una em
 acceso de inmediato (también las sesiones abiertas). Se crean los roles
 Administrador, Gerente comercial y Vendedor, y catálogos mínimos de formas de pago y actividades.
 
+## Tipo de cambio (Banxico)
+
+El tipo de cambio del dólar (FIX de Banxico) se consulta solo, una vez por día, si hay token. El token es gratuito:
+se solicita en https://www.banxico.org.mx/SieAPIRest/service/v1/token y va en *user-secrets*:
+
+```bash
+dotnet user-secrets --project src/InteliCRM.Api set "Banxico:Token" "<token>"
+```
+
+Sin token (o si Banxico no responde) se usa el último registrado, y el administrador puede capturarlo a mano en
+**Mi empresa → Tipo de cambio del dólar**. Se muestra en la barra superior y se propone al cotizar en dólares.
+
 ## Correo y SMS
 
 Sección `Mensajeria` de la configuración. **Sin configurar, los envíos son simulados**: no sale nada, pero quedan

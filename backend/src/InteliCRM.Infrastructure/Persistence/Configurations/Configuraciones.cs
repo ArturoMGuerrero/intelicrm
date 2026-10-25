@@ -245,3 +245,14 @@ public class CotizacionPartidaConfig : IEntityTypeConfiguration<CotizacionPartid
         b.HasOne(x => x.Producto).WithMany().HasForeignKey(x => x.ProductoId).OnDelete(DeleteBehavior.Restrict);
     }
 }
+
+public class TipoCambioConfig : IEntityTypeConfiguration<TipoCambio>
+{
+    public void Configure(EntityTypeBuilder<TipoCambio> b)
+    {
+        b.ToTable("TiposCambio");
+        b.Property(x => x.Valor).HasPrecision(18, 4);
+        b.Property(x => x.Fuente).HasMaxLength(30).IsRequired();
+        b.HasIndex(x => new { x.CuentaId, x.Fecha }).IsUnique();
+    }
+}

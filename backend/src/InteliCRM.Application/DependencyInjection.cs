@@ -1,3 +1,4 @@
+using InteliCRM.Application.TiposCambio;
 using InteliCRM.Application.Plataforma;
 using InteliCRM.Application.Catalogos;
 using InteliCRM.Application.Citas;
@@ -46,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<DashboardService>();
         services.AddScoped<BarraSuperiorService>();
         services.AddScoped<AuthService>();
+        services.AddScoped<TipoCambioService>();
         services.AddScoped<EmpresaPlataformaService>();
         services.AddScoped<UsuarioService>();
         services.AddScoped<RolService>();

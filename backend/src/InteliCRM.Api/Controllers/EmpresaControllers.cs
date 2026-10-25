@@ -1,3 +1,4 @@
+using InteliCRM.Application.TiposCambio;
 using InteliCRM.Application.Empleados;
 using InteliCRM.Application.Empresa;
 using InteliCRM.Application.Productos;
@@ -17,6 +18,18 @@ public class EmpresaController(EmpresaService servicio) : ControllerBase
 
     [HttpPut, Permiso("empresa.editar")]
     public Task<ConfiguracionEmpresaDto> Guardar(GuardarEmpresaRequest req, CancellationToken ct) => servicio.GuardarAsync(req, ct);
+}
+
+/// <summary>Tipo de cambio del dólar: el vigente lo ve cualquier usuario; capturarlo requiere editar Mi empresa.</summary>
+[ApiController]
+[Route("api/tipo-cambio")]
+public class TipoCambioController(TipoCambioService servicio) : ControllerBase
+{
+    [HttpGet]
+    public Task<EstadoTipoCambioDto> Estado(CancellationToken ct) => servicio.EstadoAsync(ct);
+
+    [HttpPost, Permiso("empresa.editar")]
+    public Task<TipoCambioDto> Registrar(RegistrarTipoCambioRequest req, CancellationToken ct) => servicio.RegistrarAsync(req, ct);
 }
 
 [ApiController]
