@@ -2,6 +2,7 @@ import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { useEmpresa, useGuardarEmpresa } from '../api/hooks'
 import type { ConfiguracionEmpresa, CuentaBancaria } from '../api/tipos'
 import { etiquetaTasa, TASAS_IVA } from '../components/EditorPartidas'
+import { TarjetaTipoCambio } from '../components/TipoCambio'
 import {
   Boton, BotonIcono, Campo, Cargando, Encabezado, errorDeCampo, Input, MensajeError, notificar, nulo, Select, Tarjeta, Textarea,
 } from '../components/ui'
@@ -119,6 +120,8 @@ function Formulario({ empresa }: { empresa: ConfiguracionEmpresa }) {
             <Textarea rows={2} value={f.pieDocumentos} onChange={cambiar('pieDocumentos')} placeholder="Condiciones, datos para depósito…" />
           </Campo>
         </Tarjeta>
+
+        <TarjetaTipoCambio editable={editable} />
 
         <Tarjeta titulo="Cuentas bancarias" acciones={editable && (
           <Boton tamano="sm" icono="mas" onClick={() => setCuentas([...cuentas, { banco: '', numeroCuenta: '', clabe: '', descripcion: '' }])}>Agregar</Boton>

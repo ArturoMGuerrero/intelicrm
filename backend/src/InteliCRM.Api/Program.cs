@@ -1,3 +1,4 @@
+using InteliCRM.Application.TiposCambio;
 using InteliCRM.Application.Plataforma;
 using System.Security.Cryptography;
 using System.Text.Json.Serialization;
@@ -32,6 +33,9 @@ builder.Services.AddSingleton<ISuperAdministradores, SuperAdministradores>();
 // Envío de correos y SMS (sección "Mensajeria"; sin configuración, el envío es simulado).
 builder.Services.Configure<OpcionesMensajeria>(builder.Configuration.GetSection(OpcionesMensajeria.Seccion));
 builder.Services.AddHttpClient<IEnviadorMensajes, EnviadorMensajes>(c => c.Timeout = TimeSpan.FromSeconds(20));
+builder.Services.Configure<OpcionesBanxico>(builder.Configuration.GetSection(OpcionesBanxico.Seccion));
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<IFuenteTipoCambio, FuenteBanxico>(c => c.Timeout = TimeSpan.FromSeconds(8));
 
 // ---------- Autenticación JWT ----------
 var jwt = builder.Configuration.GetSection(OpcionesJwt.Seccion).Get<OpcionesJwt>() ?? new OpcionesJwt();

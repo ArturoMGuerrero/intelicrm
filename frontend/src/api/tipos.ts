@@ -713,3 +713,18 @@ export interface TicketSoporte {
   correoContacto: string
   estatusEnvio: EstatusMensaje
 }
+
+/** Tipo de cambio del dólar de un día (pesos por dólar). */
+export interface TipoCambio {
+  fecha: string
+  valor: number
+  /** "Banxico FIX" o "Manual". */
+  fuente: string
+}
+
+export interface EstadoTipoCambio {
+  actual: TipoCambio | null
+  /** Hay token de Banxico: se actualiza solo. */
+  fuenteAutomatica: boolean
+  recientes: TipoCambio[]
+}

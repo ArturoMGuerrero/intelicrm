@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import {
   useAlmacenes, useCambiarEstatusCotizacion, useCargoDesdeCotizacion, useCatalogo, useClientes, useCotizacion, useEliminarCotizacion, useEmpleados,
-  useEmpresa, useGuardarCotizacion, usePreciosCliente, useProductos, useProspectos,
+  useEmpresa, useGuardarCotizacion, useTipoCambio, usePreciosCliente, useProductos, useProspectos,
 } from '../api/hooks'
 import type { Cotizacion, EstatusCotizacion, Moneda } from '../api/tipos'
 import {
@@ -64,6 +64,13 @@ function Editor({ cotizacion }: { cotizacion?: Cotizacion }) {
     if (p?.empleadoResponsableId) setF((actual) => ({ ...actual, empleadoId: String(p.empleadoResponsableId) }))
   }, [prospectos.data]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const tipoCambioVigente = useTipoCambio().data?.actual
+  // Al pasar a dólares se propone el tipo de cambio vigente (si no se escribió uno).
+  const elegirMoneda = (moneda: Moneda) =>
+    setF((actual) => ({
+      ...actual, moneda,
+      tipoCambio: moneda === 'USD' && !actual.tipoCambio && tipoCambioVigente ? tipoCambioVigente.valor.toString() : actual.tipoCambio,
+    }))
   const cambiar = (campo: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [campo]: e.target.value })
 
   // Si el destinatario es (o está ligado a) un cliente con lista de precios, se usan sus precios.
@@ -193,7 +200,7 @@ function Editor({ cotizacion }: { cotizacion?: Cotizacion }) {
               <datalist id="sugerencias-atencion">{sugerenciasAtencion.map((n) => <option key={n} value={n} />)}</datalist>
             </Campo>
             <Campo etiqueta="Moneda">
-              <Select value={f.moneda} onChange={cambiar('moneda')}>
+              <Select value={f.moneda} onChange={(e) => elegirMoneda(e.target.value as Moneda)}>
                 <option value="MXN">Pesos (MXN)</option>
                 <option value="USD">Dólares (USD)</option>
               </Select>

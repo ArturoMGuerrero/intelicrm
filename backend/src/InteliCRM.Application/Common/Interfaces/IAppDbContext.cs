@@ -15,6 +15,7 @@ public interface IAppDbContext
     DbSet<Cotizacion> Cotizaciones { get; }
     DbSet<Cliente> Clientes { get; }
     DbSet<Producto> Productos { get; }
+    DbSet<TipoCambio> TiposCambio { get; }
     DbSet<CategoriaProducto> CategoriasProducto { get; }
     DbSet<Empleado> Empleados { get; }
     DbSet<Puesto> Puestos { get; }

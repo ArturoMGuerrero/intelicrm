@@ -2676,6 +2676,49 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.ToTable("TicketsSoporte", (string)null);
                 });
 
+            modelBuilder.Entity("InteliCRM.Domain.Entities.TipoCambio", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("CreadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CuentaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Fuente")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ModificadoPorId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Valor")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CuentaId");
+
+                    b.HasIndex("CuentaId", "Fecha")
+                        .IsUnique();
+
+                    b.ToTable("TiposCambio", (string)null);
+                });
+
             modelBuilder.Entity("InteliCRM.Domain.Entities.TipoContacto", b =>
                 {
                     b.Property<int>("Id")
@@ -3693,6 +3736,15 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("InteliCRM.Domain.Entities.TicketSoporte", b =>
+                {
+                    b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
+                        .WithMany()
+                        .HasForeignKey("CuentaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InteliCRM.Domain.Entities.TipoCambio", b =>
                 {
                     b.HasOne("InteliCRM.Domain.Entities.Cuenta", null)
                         .WithMany()
