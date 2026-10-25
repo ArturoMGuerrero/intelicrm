@@ -22,6 +22,7 @@ public record SesionDto(
     int RolId, string Rol, bool EsAdministrador,
     int? EmpleadoId,
     IReadOnlyList<string> Permisos,
+    bool EsSuperAdministrador,
     [property: JsonIgnore] string SelloSeguridad); // solo para firmar el token; no se envía al navegador
 
 public class CambiarPasswordRequest

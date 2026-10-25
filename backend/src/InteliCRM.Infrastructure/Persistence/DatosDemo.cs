@@ -43,55 +43,14 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
     }
 
     /// <summary>
-    /// Arranque sin datos de ejemplo: si la base está vacía, crea solo la empresa, los roles base,
-    /// catálogos mínimos de pago y actividades, y el usuario administrador indicado.
+    /// Arranque sin datos de ejemplo: si la base está vacía, crea solo la empresa (roles base, catálogos
+    /// mínimos) y el usuario administrador indicado. Ver <see cref="CreadorCuentas"/>.
     /// </summary>
     public async Task CrearCuentaInicialAsync(string empresa, string nombre, string correo, string password, CancellationToken ct = default)
     {
         if (await db.Cuentas.AnyAsync(ct))
             return;
-
-        try
-        {
-            var cuenta = new Cuenta { Nombre = empresa, FechaCreacion = DateTime.Now };
-            db.Cuentas.Add(cuenta);
-            await db.SaveChangesAsync(ct);
-            db.UsarCuenta(cuenta.Id);
-
-            db.InstrumentosPago.AddRange(new InstrumentoPago { Nombre = "Efectivo" }, new InstrumentoPago { Nombre = "Transferencia electrónica" },
-                new InstrumentoPago { Nombre = "Tarjeta de crédito/débito" }, new InstrumentoPago { Nombre = "Cheque" });
-            db.CondicionesPago.AddRange(new CondicionPago { Nombre = "Contado", DiasCredito = 0 },
-                new CondicionPago { Nombre = "Crédito 30 días", DiasCredito = 30 }, new CondicionPago { Nombre = "Crédito 60 días", DiasCredito = 60 });
-            db.AccionesActividades.AddRange(
-                new AccionActividad { Nombre = "Llamada", DuracionMinutos = 15 },
-                new AccionActividad { Nombre = "Videollamada", DuracionMinutos = 30 },
-                new AccionActividad { Nombre = "Visita presencial", DuracionMinutos = 90 },
-                new AccionActividad { Nombre = "Correo", DuracionMinutos = 10 });
-
-            var admin = new Rol { Nombre = "Administrador", Descripcion = "Acceso total al sistema.", EsAdministrador = true };
-            db.Roles.AddRange(admin,
-                new Rol
-                {
-                    Nombre = "Gerente comercial", Descripcion = "Todo lo comercial y catálogos; sin administrar usuarios.",
-                    Permisos = Permisos.Todos.Where(p => !p.StartsWith("usuarios.") && !p.StartsWith("roles.")).ToList(),
-                },
-                new Rol
-                {
-                    Nombre = "Vendedor", Descripcion = "Da seguimiento a prospectos, agenda citas y cotiza. Solo consulta catálogos.",
-                    Permisos =
-                    [
-                        "prospectos.ver", "prospectos.editar", "citas.ver", "citas.editar", "citas.eliminar",
-                        "cotizaciones.ver", "cotizaciones.editar", "clientes.ver", "productos.ver", "empleados.ver", "catalogos.ver",
-                    ],
-                });
-            await db.SaveChangesAsync(ct);
-
-            await CrearUsuarioAsync(cuenta.Id, nombre, correo, password, admin, null);
-        }
-        finally
-        {
-            db.UsarCuenta(null);
-        }
+        await new CreadorCuentas(db, usuarios).CrearAsync(empresa, nombre, correo, password, ct);
     }
 
     private async Task CargarCuentaPrincipalAsync(CancellationToken ct)

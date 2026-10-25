@@ -7,7 +7,7 @@ import type {
   Rol, Sucursal, Usuario, Cargo, CargoResumen, CuentaPorPagar, CuentaPorPagarResumen, FiltroEstadoSaldo, ResumenSaldos,
   BloqueHorario, ConfiguracionEmpresa, EstatusOrdenCompra, Existencia, Faltante, ListaPrecios, ListaPreciosResumen,
   MovimientoInventario, OrdenCompra, OrdenCompraResumen,
-  Aviso, ResultadoBusqueda, ProspectoSinSeguimiento,
+  Aviso, ResultadoBusqueda, ProspectoSinSeguimiento, EmpresaPlataforma,
   CanalMensaje, Destinatario, EstadoMensajeria, Formato, MensajeEnviado, Plantilla, Promocion, TicketSoporte, TipoPlantilla,
 } from './tipos'
 
@@ -543,3 +543,15 @@ export const useTickets = () =>
 
 export const useCrearTicket = () =>
   useMutacion((datos: unknown) => api.post<TicketSoporte>('/soporte', datos), { exito: 'Mensaje enviado a soporte.', errorEnToast: false })
+
+// ---------- Plataforma (superadministrador) ----------
+export const useEmpresasPlataforma = () =>
+  useQuery({ queryKey: ['plataforma', 'empresas'], queryFn: () => api.get<EmpresaPlataforma[]>('/plataforma/empresas') })
+
+export const useCrearEmpresa = () =>
+  useMutacion((datos: { empresa: string; nombreAdministrador: string; correoAdministrador: string; passwordAdministrador: string }) =>
+    api.post<EmpresaPlataforma>('/plataforma/empresas', datos), { exito: (e) => `Empresa ${e.nombre} creada.`, errorEnToast: false })
+
+export const useCambiarEstadoEmpresa = () =>
+  useMutacion(({ id, activa }: { id: number; activa: boolean }) => api.patch<EmpresaPlataforma>(`/plataforma/empresas/${id}/estado`, { activa }),
+    { exito: (e) => `Empresa ${e.nombre} ${e.activa ? 'reactivada' : 'suspendida'}.` })

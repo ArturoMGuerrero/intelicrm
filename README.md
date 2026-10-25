@@ -130,7 +130,19 @@ dotnet user-secrets --project src/InteliCRM.Api set "Arranque:Admin:Correo" "tu@
 dotnet user-secrets --project src/InteliCRM.Api set "Arranque:Admin:Password" "<contraseña>"
 ```
 
-Solo aplica cuando la base está vacía (borra `intelicrm.db*` para empezar de nuevo). Se crean los roles
+Solo aplica cuando la base está vacía (borra `intelicrm.db*` para empezar de nuevo).
+
+### Superadministrador y alta de empresas
+
+El superadministrador da de alta y suspende empresas desde **Plataforma → Empresas**. No ve los datos de
+negocio de las empresas. Se define por configuración (correos separados por coma), nunca desde la pantalla:
+
+```bash
+dotnet user-secrets --project src/InteliCRM.Api set "Plataforma:SuperAdministradores" "tu@correo.com"
+```
+
+Hay que volver a iniciar sesión para que aparezca el menú. Al suspender una empresa, sus usuarios pierden el
+acceso de inmediato (también las sesiones abiertas). Se crean los roles
 Administrador, Gerente comercial y Vendedor, y catálogos mínimos de formas de pago y actividades.
 
 ## Correo y SMS

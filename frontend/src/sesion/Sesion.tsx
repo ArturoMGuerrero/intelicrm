@@ -24,6 +24,9 @@ export function useSesion() {
 /** Atajo: ¿el usuario tiene este permiso? p. ej. usePuede('clientes.editar') */
 export const usePuede = (permiso: string) => useSesion().puede(permiso)
 
+/** Pseudo-permiso del superadministrador (alta y suspensión de empresas). */
+export const PERMISO_PLATAFORMA = 'plataforma.empresas'
+
 export function ProveedorSesion({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
   const [usuario, setUsuario] = useState<SesionUsuario | null>(null)
@@ -68,7 +71,8 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
     verificando,
     iniciarSesion,
     cerrarSesion,
-    puede: (permiso) => usuario?.permisos.includes(permiso) ?? false,
+    // "plataforma.empresas" no es un permiso de rol: lo tiene solo el superadministrador.
+    puede: (permiso) => (permiso === PERMISO_PLATAFORMA ? !!usuario?.esSuperAdministrador : usuario?.permisos.includes(permiso) ?? false),
   }), [usuario, verificando, iniciarSesion, cerrarSesion])
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>

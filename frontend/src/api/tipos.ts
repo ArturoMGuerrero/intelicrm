@@ -296,6 +296,21 @@ export interface SesionUsuario {
   esAdministrador: boolean
   empleadoId: number | null
   permisos: string[]
+  /** Puede dar de alta y suspender empresas (se define en la configuración del servidor). */
+  esSuperAdministrador: boolean
+}
+
+/** Empresa de la plataforma (vista del superadministrador). */
+export interface EmpresaPlataforma {
+  id: number
+  nombre: string
+  activa: boolean
+  fechaCreacion: string
+  usuarios: number
+  usuariosActivos: number
+  administrador: string | null
+  correoAdministrador: string | null
+  ultimoAcceso: string | null
 }
 
 export interface RespuestaLogin {
