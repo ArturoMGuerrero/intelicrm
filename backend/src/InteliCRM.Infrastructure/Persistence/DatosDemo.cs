@@ -246,14 +246,14 @@ public class DatosDemo(AppDbContext db, UserManager<Usuario> usuarios)
             Concepto = "Hospedaje de servidores (trimestre)", CondicionPago = credito30,
         };
         cxpServidores.FijarPlazo(hoyFecha.AddDays(-40), 30);
-        cxpServidores.FijarTotales(18000, 18000 * DocumentoConSaldo.TasaIva);
+        cxpServidores.FijarTotales(18000, 18000 * Domain.Common.Iva.Predeterminada);
         var cxpRespaldo = new CuentaPorPagar
         {
             Consecutivo = 2, Folio = "CXP-00002", Proveedor = nubeCentro, FolioProveedor = "NC-10377",
             Concepto = "Servicio de respaldos", CondicionPago = credito30,
         };
         cxpRespaldo.FijarPlazo(hoyFecha.AddDays(-3), 30);
-        cxpRespaldo.FijarTotales(4500, 4500 * DocumentoConSaldo.TasaIva);
+        cxpRespaldo.FijarTotales(4500, 4500 * Domain.Common.Iva.Predeterminada);
         db.CuentasPorPagar.AddRange(cxpServidores, cxpRespaldo);
 
         // ---------- Roles ----------

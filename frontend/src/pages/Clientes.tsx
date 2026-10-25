@@ -8,6 +8,7 @@ import {
   errorDeCampo, Fila, Input, Insignia, MensajeError, Modal, nulo, numeroONulo, PieFormulario, Segmentos, Select, Tabla, Tarjeta,
   Textarea, useConfirmar, Vacio,
 } from '../components/ui'
+import { etiquetaTasa, TASAS_IVA } from '../components/EditorPartidas'
 import EstadoCuenta from '../components/EstadoCuenta'
 import FormCita from '../components/FormCita'
 import { SiPuede, useSesion } from '../sesion/Sesion'
@@ -118,7 +119,7 @@ function FormCliente({ cliente: c, onCerrar }: { cliente?: Cliente; onCerrar: ()
     razonSocial: texto(c?.razonSocial), nombreComercial: texto(c?.nombreComercial), rfc: texto(c?.rfc),
     tipoPersona: c?.tipoPersona ?? ('Moral' as TipoPersona),
     telefono: texto(c?.telefono), correo: texto(c?.correo), direccion: texto(c?.direccion), zona: texto(c?.zona),
-    listaPreciosId: c?.listaPreciosId?.toString() ?? '',
+    listaPreciosId: c?.listaPreciosId?.toString() ?? '', tasaIva: c?.tasaIva?.toString() ?? '',
     condicionPagoId: c?.condicionPagoId?.toString() ?? '', instrumentoPagoId: c?.instrumentoPagoId?.toString() ?? '',
     banco: texto(c?.banco), numeroCuenta: texto(c?.numeroCuenta), clabe: texto(c?.clabe),
     diasRevision: c?.diasRevision ? c.diasRevision.split(',') : [] as string[],
@@ -162,7 +163,7 @@ function FormCliente({ cliente: c, onCerrar }: { cliente?: Cliente; onCerrar: ()
       datos: {
         razonSocial: f.razonSocial, nombreComercial: nulo(f.nombreComercial), rfc: nulo(f.rfc.toUpperCase()),
         tipoPersona: f.tipoPersona, telefono: nulo(f.telefono), correo: nulo(f.correo), direccion: nulo(f.direccion),
-        zona: nulo(f.zona), listaPreciosId: numeroONulo(f.listaPreciosId),
+        zona: nulo(f.zona), listaPreciosId: numeroONulo(f.listaPreciosId), tasaIva: numeroONulo(f.tasaIva),
         condicionPagoId: numeroONulo(f.condicionPagoId), instrumentoPagoId: numeroONulo(f.instrumentoPagoId),
         banco: nulo(f.banco), numeroCuenta: nulo(f.numeroCuenta), clabe: nulo(f.clabe),
         diasRevision: f.diasRevision, horaRevisionDesde: horaApi(f.horaRevisionDesde), horaRevisionHasta: horaApi(f.horaRevisionHasta),
@@ -220,6 +221,12 @@ function FormCliente({ cliente: c, onCerrar }: { cliente?: Cliente; onCerrar: ()
               <option value="">Precios generales</option>
               {c?.listaPreciosId && !listas.some((l) => l.id === c.listaPreciosId) && <option value={c.listaPreciosId}>{c.listaPrecios}</option>}
               {listas.map((l) => <option key={l.id} value={l.id}>{l.nombre}</option>)}
+            </Select>
+          </Campo>
+          <Campo etiqueta="IVA" ayuda="Elige una tasa solo si a este cliente se le factura distinto (p. ej. 0 % en exportación).">
+            <Select value={f.tasaIva} onChange={cambiar('tasaIva')}>
+              <option value="">Según cada producto</option>
+              {TASAS_IVA.map((t) => <option key={t} value={t}>{etiquetaTasa(t)} en todo</option>)}
             </Select>
           </Campo>
           <Campo etiqueta="Notas" className="sm:col-span-2"><Textarea rows={2} value={f.notas} onChange={cambiar('notas')} /></Campo>

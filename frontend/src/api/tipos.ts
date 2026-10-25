@@ -76,6 +76,8 @@ export interface Cliente {
   zona: string | null
   listaPreciosId: number | null
   listaPrecios: string | null
+  /** IVA propio del cliente (0, 0.08 o 0.16); null = el de cada producto. */
+  tasaIva: number | null
   condicionPagoId: number | null
   condicionPago: string | null
   diasCredito: number | null
@@ -117,6 +119,8 @@ export interface Producto {
   unidadMedida: string | null
   ubicacion: string | null
   precio: number
+  /** Tasa de IVA: 0, 0.08 o 0.16. */
+  tasaIva: number
   precioMayoreo: number | null
   cantidadMayoreo: number | null
   costo: number
@@ -228,6 +232,7 @@ export interface Partida {
   precioUnitario: number
   descuentoPorcentaje: number
   importe: number
+  tasaIva: number
 }
 
 export interface Cotizacion {
@@ -503,6 +508,8 @@ export interface ConfiguracionEmpresa {
   logo: string | null
   serieFactura: string | null
   pieDocumentos: string | null
+  /** IVA para productos nuevos y conceptos libres: 0, 0.08 o 0.16. */
+  tasaIvaPredeterminada: number
   cuentasBancarias: CuentaBancaria[]
 }
 
@@ -596,6 +603,7 @@ export interface PartidaCompra {
   pendiente: number
   costoUnitario: number
   importe: number
+  tasaIva: number
 }
 
 export interface OrdenCompra {

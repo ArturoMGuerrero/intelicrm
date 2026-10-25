@@ -1,3 +1,4 @@
+using InteliCRM.Domain.Common;
 using System.ComponentModel.DataAnnotations;
 using InteliCRM.Application.Cobranza;
 using InteliCRM.Application.Common;
@@ -16,7 +17,7 @@ public record OrdenCompraResumenDto(
 
 public record PartidaCompraDto(
     int Id, int ProductoId, string Codigo, string Descripcion, decimal Cantidad, decimal CantidadRecibida,
-    decimal Pendiente, decimal CostoUnitario, decimal Importe);
+    decimal Pendiente, decimal CostoUnitario, decimal Importe, decimal TasaIva);
 
 public record CuentaGeneradaDto(int Id, string Folio, string? FolioProveedor, DateOnly Fecha, decimal Total, decimal Saldo);
 
@@ -155,7 +156,7 @@ public class CompraService(IAppDbContext db, InventarioService inventario, Cuent
             o.AlmacenId, o.Almacen!.Nombre, o.CondicionPagoId, o.CondicionPago?.Nombre, o.DiasCredito, o.Notas,
             o.Estatus, o.MotivoCancelacion, o.Subtotal, o.Iva, o.Total,
             o.Partidas.OrderBy(p => p.Id).Select(p => new PartidaCompraDto(p.Id, p.ProductoId, p.Producto!.Codigo, p.Descripcion,
-                p.Cantidad, p.CantidadRecibida, p.Pendiente, p.CostoUnitario, p.Importe)).ToList(),
+                p.Cantidad, p.CantidadRecibida, p.Pendiente, p.CostoUnitario, p.Importe, p.TasaIva)).ToList(),
             cuentas.Select(c => new CuentaGeneradaDto(c.Id, c.Folio, c.FolioProveedor, c.Fecha, c.Total, c.Saldo)).ToList());
     }
 
@@ -211,6 +212,7 @@ public class CompraService(IAppDbContext db, InventarioService inventario, Cuent
         if (recepciones.Count == 0) throw new ReglaNegocioException("Indica la cantidad recibida de al menos una partida.");
 
         decimal subtotal = 0;
+        var importesRecibidos = new List<(decimal Importe, decimal Tasa)>();
         foreach (var r in recepciones)
         {
             var partida = orden.Partidas.FirstOrDefault(p => p.Id == r.PartidaId)
@@ -222,6 +224,7 @@ public class CompraService(IAppDbContext db, InventarioService inventario, Cuent
                 TipoMovimientoInventario.EntradaCompra, orden.Folio, req.FolioProveedor?.Trim(), ct);
             partida.CantidadRecibida += r.Cantidad;
             subtotal += Math.Round(r.Cantidad * partida.CostoUnitario, 2);
+            importesRecibidos.Add((Math.Round(r.Cantidad * partida.CostoUnitario, 2), partida.TasaIva));
 
             var producto = await db.Productos.FirstAsync(p => p.Id == partida.ProductoId, ct);
             producto.Costo = partida.CostoUnitario;
@@ -229,7 +232,7 @@ public class CompraService(IAppDbContext db, InventarioService inventario, Cuent
 
         orden.ActualizarEstatusPorRecepcion();
 
-        var cuenta = await cuentasPorPagar.NuevaDesdeCompraAsync(orden, fecha, req.FolioProveedor, subtotal, ct);
+        var cuenta = await cuentasPorPagar.NuevaDesdeCompraAsync(orden, fecha, req.FolioProveedor, subtotal, Iva.Calcular(importesRecibidos), ct);
         db.CuentasPorPagar.Add(cuenta);
 
         await db.SaveChangesAsync(ct);
@@ -338,6 +341,7 @@ public class CompraService(IAppDbContext db, InventarioService inventario, Cuent
             {
                 ProductoId = p.ProductoId, Descripcion = producto.Nombre, Cantidad = p.Cantidad,
                 CostoUnitario = Math.Round(p.CostoUnitario ?? producto.Costo, 4),
+                TasaIva = producto.TasaIva,
             });
         }
         orden.RecalcularTotales();

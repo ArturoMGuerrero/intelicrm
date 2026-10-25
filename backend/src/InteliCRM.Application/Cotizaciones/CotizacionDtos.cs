@@ -24,7 +24,7 @@ public record CotizacionResumenDto(
 
 public record PartidaDto(
     int Id, int? ProductoId, string Descripcion, decimal Cantidad,
-    decimal PrecioUnitario, decimal DescuentoPorcentaje, decimal Importe);
+    decimal PrecioUnitario, decimal DescuentoPorcentaje, decimal Importe, decimal TasaIva);
 
 public record CotizacionDto(
     int Id, string Folio, DateOnly Fecha, int VigenciaDias, DateOnly FechaVencimiento,
@@ -42,7 +42,7 @@ public record CotizacionDto(
         c.Estatus, c.Notas, c.Moneda, c.TipoCambio, c.Atencion, c.Subtotal, c.Iva, c.Total,
         c.Partidas.OrderBy(p => p.Id)
             .Select(p => new PartidaDto(p.Id, p.ProductoId, p.Descripcion, p.Cantidad,
-                                        p.PrecioUnitario, p.DescuentoPorcentaje, p.Importe))
+                                        p.PrecioUnitario, p.DescuentoPorcentaje, p.Importe, p.TasaIva))
             .ToList());
 }
 
@@ -91,6 +91,9 @@ public class GuardarPartidaRequest
 
     [Range(0, 100)]
     public decimal DescuentoPorcentaje { get; set; }
+
+    /// <summary>0, 0.08 o 0.16. Si no se indica, se toma del cliente, del producto o de la empresa.</summary>
+    public decimal? TasaIva { get; set; }
 }
 
 public class CambiarEstatusCotizacionRequest

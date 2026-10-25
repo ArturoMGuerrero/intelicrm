@@ -1,3 +1,4 @@
+using InteliCRM.Domain.Common;
 using System.ComponentModel.DataAnnotations;
 using InteliCRM.Application.Common.Exceptions;
 using InteliCRM.Application.Common.Interfaces;
@@ -18,7 +19,7 @@ public record DireccionClienteDto(
 public record ClienteDto(
     int Id, string RazonSocial, string? NombreComercial, string? Rfc, TipoPersona TipoPersona,
     string? ContactoPrincipal, string? Telefono, string? Correo, string? Direccion, string? Zona,
-    int? ListaPreciosId, string? ListaPrecios,
+    int? ListaPreciosId, string? ListaPrecios, decimal? TasaIva,
     int? CondicionPagoId, string? CondicionPago, int? DiasCredito,
     int? InstrumentoPagoId, string? InstrumentoPago,
     string? Banco, string? NumeroCuenta, string? Clabe,
@@ -29,7 +30,7 @@ public record ClienteDto(
     public static ClienteDto Desde(Cliente c) => new(
         c.Id, c.RazonSocial, c.NombreComercial, c.Rfc, c.TipoPersona,
         c.ContactoPrincipal, c.Telefono, c.Correo, c.Direccion, c.Zona,
-        c.ListaPreciosId, c.ListaPrecios?.Nombre,
+        c.ListaPreciosId, c.ListaPrecios?.Nombre, c.TasaIva,
         c.CondicionPagoId, c.CondicionPago?.Nombre, c.CondicionPago?.DiasCredito,
         c.InstrumentoPagoId, c.InstrumentoPago?.Nombre,
         c.Banco, c.NumeroCuenta, c.Clabe,
@@ -135,6 +136,10 @@ public class GuardarClienteRequest
     public string? Zona { get; set; }
 
     public int? ListaPreciosId { get; set; }
+
+    /// <summary>Tasa de IVA para todo lo que se le vende (0, 0.08 o 0.16). Sin valor: la de cada producto.</summary>
+    public decimal? TasaIva { get; set; }
+
     public int? CondicionPagoId { get; set; }
     public int? InstrumentoPagoId { get; set; }
 
@@ -228,6 +233,8 @@ public class ClienteService(IAppDbContext db)
     {
         if (req.ListaPreciosId is { } listaId && !await db.ListasPrecios.AnyAsync(l => l.Id == listaId, ct))
             throw new NoEncontradoException("Lista de precios", listaId);
+        if (req.TasaIva is { } tasa && !Iva.EsValida(tasa))
+            throw new ReglaNegocioException("La tasa de IVA debe ser 0 %, 8 % o 16 %.");
         if (req.CondicionPagoId is { } condId && !await db.CondicionesPago.AnyAsync(x => x.Id == condId, ct))
             throw new NoEncontradoException("Condición de pago", condId);
         if (req.InstrumentoPagoId is { } instId && !await db.InstrumentosPago.AnyAsync(x => x.Id == instId, ct))
@@ -267,6 +274,7 @@ public class ClienteService(IAppDbContext db)
         c.Direccion = Limpio(req.Direccion);
         c.Zona = Limpio(req.Zona);
         c.ListaPreciosId = req.ListaPreciosId;
+        c.TasaIva = req.TasaIva;
         c.CondicionPagoId = req.CondicionPagoId;
         c.InstrumentoPagoId = req.InstrumentoPagoId;
         c.Banco = Limpio(req.Banco);

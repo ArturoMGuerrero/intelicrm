@@ -4,7 +4,7 @@ import {
   useGuardarCuentaPorPagar, useProveedores, useRegistrarPagoProveedor, useResumenCuentasPorPagar,
 } from '../api/hooks'
 import type { CuentaPorPagar, CuentaPorPagarResumen, FiltroEstadoSaldo, Pago } from '../api/tipos'
-import { TASA_IVA, Totales } from '../components/EditorPartidas'
+import { etiquetaTasa, TASA_IVA, TASAS_IVA, Totales } from '../components/EditorPartidas'
 import { filtrosEstadoSaldo, FormCancelarDocumento, FormPago, HistorialPagos, InsigniaSaldo, ResumenDeSaldos } from '../components/Saldos'
 import {
   Aviso, BarraFiltros, Boton, Buscador, Campo, Cargando, Celda, CeldaAcciones, Checkbox, cn, Doble, Encabezado,
@@ -84,7 +84,11 @@ function FormCuenta({ cuenta, onCerrar }: { cuenta?: CuentaPorPagar; onCerrar: (
     proveedorId: cuenta?.proveedorId.toString() ?? '', folioProveedor: cuenta?.folioProveedor ?? '',
     concepto: cuenta?.concepto ?? '', fecha: cuenta?.fecha ?? aIsoFecha(new Date()),
     condicionPagoId: cuenta?.condicionPagoId?.toString() ?? '', diasCredito: cuenta?.diasCredito.toString() ?? '',
-    subtotal: cuenta?.subtotal.toString() ?? '', conIva: cuenta ? cuenta.iva > 0 : true, notas: cuenta?.notas ?? '',
+    subtotal: cuenta?.subtotal.toString() ?? '', notas: cuenta?.notas ?? '',
+    // Tasa de la cuenta existente: la permitida más cercana a IVA / subtotal.
+    tasaIva: (cuenta && cuenta.subtotal > 0
+      ? [...TASAS_IVA].sort((a, b) => Math.abs(a - cuenta.iva / cuenta.subtotal) - Math.abs(b - cuenta.iva / cuenta.subtotal))[0]
+      : TASA_IVA).toString(),
   })
   const cambiar = (campo: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [campo]: e.target.value })
   const err = (c: string) => errorDeCampo(guardar.error, c)
@@ -104,7 +108,8 @@ function FormCuenta({ cuenta, onCerrar }: { cuenta?: CuentaPorPagar; onCerrar: (
   }
 
   const subtotal = Number(f.subtotal) || 0
-  const iva = f.conIva ? Math.round(subtotal * TASA_IVA * 100) / 100 : 0
+  const tasa = Number(f.tasaIva)
+  const iva = Math.round(subtotal * tasa * 100) / 100
 
   const enviar = (e: FormEvent) => {
     e.preventDefault()
@@ -114,7 +119,7 @@ function FormCuenta({ cuenta, onCerrar }: { cuenta?: CuentaPorPagar; onCerrar: (
         proveedorId: Number(f.proveedorId), folioProveedor: nulo(f.folioProveedor), concepto: f.concepto, fecha: f.fecha,
         condicionPagoId: f.condicionPagoId ? Number(f.condicionPagoId) : null,
         diasCredito: f.diasCredito === '' ? null : Number(f.diasCredito),
-        subtotal, conIva: f.conIva, notas: nulo(f.notas),
+        subtotal, conIva: tasa > 0, tasaIva: tasa, notas: nulo(f.notas),
       },
     }, { onSuccess: onCerrar })
   }
@@ -147,8 +152,14 @@ function FormCuenta({ cuenta, onCerrar }: { cuenta?: CuentaPorPagar; onCerrar: (
         <Campo etiqueta="Subtotal *" error={err('subtotal')}>
           <Input className="text-right" type="number" min="0.01" step="0.01" value={f.subtotal} onChange={cambiar('subtotal')} required />
         </Campo>
-        <div className="flex items-end pb-2"><Checkbox etiqueta="Lleva IVA 16%" checked={f.conIva} onChange={(e) => setF({ ...f, conIva: e.target.checked })} /></div>
-        <div className="flex justify-end sm:col-span-2"><Totales subtotal={subtotal} iva={iva} total={subtotal + iva} /></div>
+        <Campo etiqueta="IVA de la factura">
+          <Select value={f.tasaIva} onChange={cambiar('tasaIva')}>
+            {TASAS_IVA.map((t) => <option key={t} value={t}>{t === 0 ? 'Sin IVA (0 %)' : etiquetaTasa(t)}</option>)}
+          </Select>
+        </Campo>
+        <div className="flex justify-end sm:col-span-2">
+          <Totales subtotal={subtotal} iva={iva} total={subtotal + iva} desglose={[[tasa, iva]]} />
+        </div>
         <Campo etiqueta="Notas" className="sm:col-span-2"><Textarea rows={2} value={f.notas} onChange={cambiar('notas')} /></Campo>
         <div className="sm:col-span-2"><PieFormulario error={guardar.error} guardando={guardar.isPending} onCancelar={onCerrar} /></div>
       </form>

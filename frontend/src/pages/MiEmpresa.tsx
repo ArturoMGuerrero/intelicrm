@@ -1,8 +1,9 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import { useEmpresa, useGuardarEmpresa } from '../api/hooks'
 import type { ConfiguracionEmpresa, CuentaBancaria } from '../api/tipos'
+import { etiquetaTasa, TASAS_IVA } from '../components/EditorPartidas'
 import {
-  Boton, BotonIcono, Campo, Cargando, Encabezado, errorDeCampo, Input, MensajeError, notificar, nulo, Tarjeta, Textarea,
+  Boton, BotonIcono, Campo, Cargando, Encabezado, errorDeCampo, Input, MensajeError, notificar, nulo, Select, Tarjeta, Textarea,
 } from '../components/ui'
 import { useSesion } from '../sesion/Sesion'
 
@@ -25,6 +26,7 @@ function Formulario({ empresa }: { empresa: ConfiguracionEmpresa }) {
     regimenFiscal: empresa.regimenFiscal ?? '', codigoPostal: empresa.codigoPostal ?? '', direccion: empresa.direccion ?? '',
     telefono: empresa.telefono ?? '', correo: empresa.correo ?? '', sitioWeb: empresa.sitioWeb ?? '',
     serieFactura: empresa.serieFactura ?? '', pieDocumentos: empresa.pieDocumentos ?? '', logo: empresa.logo ?? '',
+    tasaIvaPredeterminada: (empresa.tasaIvaPredeterminada ?? 0.16).toString(),
   })
   const [cuentas, setCuentas] = useState<CuentaBancaria[]>(empresa.cuentasBancarias)
   const cambiar = (campo: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [campo]: e.target.value })
@@ -50,7 +52,7 @@ function Formulario({ empresa }: { empresa: ConfiguracionEmpresa }) {
       razonSocial: f.razonSocial, nombreComercial: nulo(f.nombreComercial), rfc: nulo(f.rfc.toUpperCase()),
       regimenFiscal: nulo(f.regimenFiscal), codigoPostal: nulo(f.codigoPostal), direccion: nulo(f.direccion),
       telefono: nulo(f.telefono), correo: nulo(f.correo), sitioWeb: nulo(f.sitioWeb), serieFactura: nulo(f.serieFactura),
-      pieDocumentos: nulo(f.pieDocumentos), logo: nulo(f.logo),
+      pieDocumentos: nulo(f.pieDocumentos), logo: nulo(f.logo), tasaIvaPredeterminada: Number(f.tasaIvaPredeterminada),
       cuentasBancarias: cuentas.filter((c) => c.banco.trim()).map((c) => ({
         banco: c.banco, numeroCuenta: nulo(c.numeroCuenta ?? ''), clabe: nulo(c.clabe ?? ''), descripcion: nulo(c.descripcion ?? ''),
       })),
@@ -83,6 +85,11 @@ function Formulario({ empresa }: { empresa: ConfiguracionEmpresa }) {
             <Campo etiqueta="Domicilio" className="sm:col-span-2"><Textarea rows={2} value={f.direccion} onChange={cambiar('direccion')} /></Campo>
             <Campo etiqueta="Serie de facturas" ayuda="Se usará al timbrar facturas electrónicas." error={err('serieFactura')}>
               <Input className="w-28 font-mono uppercase" maxLength={10} value={f.serieFactura} onChange={cambiar('serieFactura')} />
+            </Campo>
+            <Campo etiqueta="IVA predeterminado" ayuda="Para productos nuevos y conceptos libres. Cada producto y cliente puede tener el suyo.">
+              <Select value={f.tasaIvaPredeterminada} onChange={cambiar('tasaIvaPredeterminada')}>
+                {TASAS_IVA.map((t) => <option key={t} value={t}>{etiquetaTasa(t)}</option>)}
+              </Select>
             </Campo>
           </Tarjeta>
 

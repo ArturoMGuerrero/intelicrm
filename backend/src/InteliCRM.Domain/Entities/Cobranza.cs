@@ -9,8 +9,6 @@ namespace InteliCRM.Domain.Entities;
 /// </summary>
 public abstract class DocumentoConSaldo : EntidadBase
 {
-    public const decimal TasaIva = 0.16m;
-
     /// <summary>Número consecutivo dentro de la cuenta; el folio se arma a partir de él.</summary>
     public int Consecutivo { get; set; }
     public string Folio { get; set; } = string.Empty;
@@ -115,7 +113,7 @@ public class Cargo : DocumentoConSaldo
     public void RecalcularTotales()
     {
         var subtotal = Math.Round(Partidas.Sum(p => p.Importe), 2);
-        FijarTotales(subtotal, Math.Round(subtotal * TasaIva, 2));
+        FijarTotales(subtotal, Common.Iva.Calcular(Partidas.Select(p => (p.Importe, p.TasaIva))));
     }
 }
 
@@ -132,6 +130,9 @@ public class CargoPartida : EntidadBase
 
     /// <summary>Porcentaje de descuento (0 a 100).</summary>
     public decimal DescuentoPorcentaje { get; set; }
+
+    /// <summary>Tasa de IVA de la partida (0, 0.08 o 0.16).</summary>
+    public decimal TasaIva { get; set; } = Iva.Predeterminada;
 
     public decimal Importe => Math.Round(Cantidad * PrecioUnitario * (1 - DescuentoPorcentaje / 100m), 2);
 }

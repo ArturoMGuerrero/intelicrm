@@ -12,6 +12,9 @@ public class ConfiguracionEmpresa : EntidadBase
     public string? NombreComercial { get; set; }
     public string? Rfc { get; set; }
 
+    /// <summary>Tasa de IVA para productos nuevos y conceptos libres (0, 0.08 o 0.16).</summary>
+    public decimal TasaIvaPredeterminada { get; set; } = Iva.Predeterminada;
+
     /// <summary>Clave del régimen fiscal del SAT (p. ej. 601 General de Ley Personas Morales).</summary>
     public string? RegimenFiscal { get; set; }
 

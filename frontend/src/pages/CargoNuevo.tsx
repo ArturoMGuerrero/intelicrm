@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import {
-  useAlmacenes, useCatalogo, useClientes, useCrearCargo, useEmpleados, usePreciosCliente, useProductos, useProspectos,
+  useAlmacenes, useCatalogo, useClientes, useCrearCargo, useEmpleados, useEmpresa, usePreciosCliente, useProductos, useProspectos,
 } from '../api/hooks'
 import { EditorPartidas, partidaVacia, partidasParaApi, type PartidaForm } from '../components/EditorPartidas'
 import {
@@ -41,6 +41,8 @@ export default function CargoNuevo() {
   const clienteEfectivo = para === 'cliente' ? Number(f.clienteId) || undefined
     : prospectos.data?.find((p) => p.id === Number(f.prospectoId))?.clienteId ?? undefined
   const precios = usePreciosCliente(clienteEfectivo)
+  const tasaCliente = clientes.data?.find((c) => c.id === clienteEfectivo)?.tasaIva ?? null
+  const tasaEmpresa = useEmpresa().data?.tasaIvaPredeterminada
 
   // Al elegir una condición de pago se proponen sus días de crédito.
   const elegirCondicion = (id: string) => {
@@ -115,7 +117,8 @@ export default function CargoNuevo() {
           </Campo>
         </Tarjeta>
 
-        <EditorPartidas partidas={partidas} setPartidas={setPartidas} productos={productos.data} preciosEspeciales={precios.data} />
+        <EditorPartidas partidas={partidas} setPartidas={setPartidas} productos={productos.data} preciosEspeciales={precios.data}
+          tasaCliente={tasaCliente} tasaEmpresa={tasaEmpresa} />
 
         <Tarjeta>
           <Campo etiqueta="Notas"><Textarea value={f.notas} onChange={cambiar('notas')} /></Campo>

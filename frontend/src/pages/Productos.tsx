@@ -9,6 +9,7 @@ import {
   errorDeCampo, Fila, Input, Insignia, MensajeError, Modal, notificar, nulo, numeroONulo, PieFormulario, Select, Tabla,
   Tarjeta, Textarea, useConfirmar, Vacio,
 } from '../components/ui'
+import { etiquetaTasa, TASAS_IVA } from '../components/EditorPartidas'
 import { TIPOS_PRODUCTO } from '../lib/etiquetas'
 import { formatoMoneda } from '../lib/formato'
 import { SiPuede } from '../sesion/Sesion'
@@ -57,6 +58,7 @@ export default function Productos() {
                 {p.precioMayoreo != null && (
                   <p className="text-xs text-slate-500">{formatoMoneda(p.precioMayoreo)} desde {p.cantidadMayoreo}</p>
                 )}
+                {p.tasaIva != null && p.tasaIva !== 0.16 && <p className="text-xs font-medium text-amber-700">IVA {etiquetaTasa(p.tasaIva)}</p>}
               </Celda>
               <CeldaAcciones>
                 <SiPuede permiso="productos.editar"><BotonIcono icono="editar" etiqueta="Editar" onClick={() => setEditando(p)} /></SiPuede>
@@ -89,7 +91,7 @@ function FormProducto({ producto: p, onCerrar }: { producto?: Producto; onCerrar
     tipo: p?.tipo ?? ('Producto' as TipoProducto), categoriaId: p?.categoriaId?.toString() ?? '',
     codigoBarras: texto(p?.codigoBarras), codigoAlterno: texto(p?.codigoAlterno), presentacion: texto(p?.presentacion),
     unidadMedida: texto(p?.unidadMedida), ubicacion: texto(p?.ubicacion),
-    precio: p?.precio.toString() ?? '', precioMayoreo: p?.precioMayoreo?.toString() ?? '', cantidadMayoreo: p?.cantidadMayoreo?.toString() ?? '',
+    precio: p?.precio.toString() ?? '', tasaIva: p?.tasaIva?.toString() ?? '', precioMayoreo: p?.precioMayoreo?.toString() ?? '', cantidadMayoreo: p?.cantidadMayoreo?.toString() ?? '',
     costo: p?.costo.toString() ?? '0', stockMinimo: p?.stockMinimo?.toString() ?? '',
     proveedorId: p?.proveedorId?.toString() ?? '', activo: p?.activo ?? true,
   })
@@ -128,7 +130,7 @@ function FormProducto({ producto: p, onCerrar }: { producto?: Producto; onCerrar
         codigo: f.codigo, nombre: f.nombre, descripcion: nulo(f.descripcion), tipo: f.tipo, categoriaId: numeroONulo(f.categoriaId),
         codigoBarras: nulo(f.codigoBarras), codigoAlterno: nulo(f.codigoAlterno), presentacion: nulo(f.presentacion),
         unidadMedida: nulo(f.unidadMedida), ubicacion: nulo(f.ubicacion),
-        precio: Number(f.precio), precioMayoreo: numeroONulo(f.precioMayoreo), cantidadMayoreo: numeroONulo(f.cantidadMayoreo),
+        precio: Number(f.precio), tasaIva: f.tasaIva === '' ? null : Number(f.tasaIva), precioMayoreo: numeroONulo(f.precioMayoreo), cantidadMayoreo: numeroONulo(f.cantidadMayoreo),
         costo: Number(f.costo) || 0, stockMinimo: f.tipo === 'Producto' && f.stockMinimo !== '' ? Number(f.stockMinimo) : null,
         proveedorId: numeroONulo(f.proveedorId),
         otrosProveedores: otros.filter((x) => x.proveedorId).map((x) => ({
@@ -194,6 +196,12 @@ function FormProducto({ producto: p, onCerrar }: { producto?: Producto; onCerrar
               <Boton tamano="sm" onClick={() => setF({ ...f, precio: sugerido.toString() })}>Usar</Boton>
             )}
           </div>
+        </Campo>
+        <Campo etiqueta="IVA" ayuda="0 % exentos o exportación, 8 % región fronteriza, 16 % general." className="sm:col-span-2">
+          <Select value={f.tasaIva} onChange={cambiar('tasaIva')}>
+            {!p && <option value="">El predeterminado de la empresa</option>}
+            {TASAS_IVA.map((t) => <option key={t} value={t}>{etiquetaTasa(t)}</option>)}
+          </Select>
         </Campo>
         <Campo etiqueta="Precio de mayoreo" error={err('precioMayoreo')}>
           <Input type="number" min="0" step="0.01" value={f.precioMayoreo} onChange={cambiar('precioMayoreo')} />

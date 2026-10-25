@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import {
   useAlmacenes, useCambiarEstatusCotizacion, useCargoDesdeCotizacion, useCatalogo, useClientes, useCotizacion, useEliminarCotizacion, useEmpleados,
-  useGuardarCotizacion, usePreciosCliente, useProductos, useProspectos,
+  useEmpresa, useGuardarCotizacion, usePreciosCliente, useProductos, useProspectos,
 } from '../api/hooks'
 import type { Cotizacion, EstatusCotizacion, Moneda } from '../api/tipos'
 import {
@@ -70,6 +70,9 @@ function Editor({ cotizacion }: { cotizacion?: Cotizacion }) {
   const clienteEfectivo = para === 'cliente' ? Number(f.clienteId) || undefined
     : prospectos.data?.find((p) => p.id === Number(f.prospectoId))?.clienteId ?? undefined
   const precios = usePreciosCliente(clienteEfectivo)
+  // IVA: el propio del cliente (si tiene) reemplaza al de cada producto; la empresa da el de conceptos libres.
+  const tasaCliente = clientes.data?.find((c) => c.id === clienteEfectivo)?.tasaIva ?? null
+  const tasaEmpresa = useEmpresa().data?.tasaIvaPredeterminada
 
   // "A la atención de": contactos del cliente, o el propio prospecto.
   const contactosCliente = clientes.data?.find((c) => c.id === clienteEfectivo)?.contactos ?? []
@@ -203,7 +206,7 @@ function Editor({ cotizacion }: { cotizacion?: Cotizacion }) {
           </Tarjeta>
 
           <EditorPartidas partidas={partidas} setPartidas={setPartidas} productos={productos.data} preciosEspeciales={precios.data}
-            moneda={f.moneda} tipoCambio={Number(f.tipoCambio) || undefined} />
+            moneda={f.moneda} tipoCambio={Number(f.tipoCambio) || undefined} tasaCliente={tasaCliente} tasaEmpresa={tasaEmpresa} />
 
           <Tarjeta>
             <Campo etiqueta="Notas y condiciones">

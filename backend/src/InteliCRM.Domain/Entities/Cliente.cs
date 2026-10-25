@@ -22,6 +22,9 @@ public class Cliente : EntidadBase
     public int? ListaPreciosId { get; set; }
     public ListaPrecios? ListaPrecios { get; set; }
 
+    /// <summary>Tasa de IVA para todo lo que se le vende (p. ej. 0 en exportación). Sin valor, se usa la de cada producto.</summary>
+    public decimal? TasaIva { get; set; }
+
     // Datos para pagos: cómo nos paga el cliente.
     public int? CondicionPagoId { get; set; }
     public CondicionPago? CondicionPago { get; set; }

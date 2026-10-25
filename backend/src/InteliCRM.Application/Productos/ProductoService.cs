@@ -1,3 +1,5 @@
+using InteliCRM.Application.Common;
+using InteliCRM.Domain.Common;
 using System.ComponentModel.DataAnnotations;
 using InteliCRM.Application.Common.Exceptions;
 using InteliCRM.Application.Common.Interfaces;
@@ -13,7 +15,7 @@ public record ProductoDto(
     int Id, string Codigo, string Nombre, string? Descripcion, TipoProducto Tipo,
     int? CategoriaId, string? Categoria, decimal? MargenCategoria,
     string? CodigoBarras, string? CodigoAlterno, string? Presentacion, string? UnidadMedida, string? Ubicacion,
-    decimal Precio, decimal? PrecioMayoreo, decimal? CantidadMayoreo,
+    decimal Precio, decimal TasaIva, decimal? PrecioMayoreo, decimal? CantidadMayoreo,
     decimal Costo, decimal? StockMinimo, int? ProveedorId, string? Proveedor,
     List<ProductoProveedorDto> OtrosProveedores, bool TieneImagen, bool Activo);
 
@@ -63,6 +65,9 @@ public class GuardarProductoRequest
     [Range(0, 100_000_000)]
     public decimal Precio { get; set; }
 
+    /// <summary>0, 0.08 o 0.16. Sin valor: la predeterminada de la empresa.</summary>
+    public decimal? TasaIva { get; set; }
+
     [Range(0, 100_000_000)]
     public decimal? PrecioMayoreo { get; set; }
 
@@ -99,7 +104,7 @@ public class ProductoService(IAppDbContext db)
         p.Id, p.Codigo, p.Nombre, p.Descripcion, p.Tipo,
         p.CategoriaId, p.Categoria != null ? p.Categoria.Nombre : null, p.Categoria != null ? p.Categoria.MargenPorcentaje : null,
         p.CodigoBarras, p.CodigoAlterno, p.Presentacion, p.UnidadMedida, p.Ubicacion,
-        p.Precio, p.PrecioMayoreo, p.CantidadMayoreo,
+        p.Precio, p.TasaIva, p.PrecioMayoreo, p.CantidadMayoreo,
         p.Costo, p.StockMinimo, p.ProveedorId, p.Proveedor != null ? p.Proveedor.RazonSocial : null,
         p.OtrosProveedores.Select(x => new ProductoProveedorDto(x.ProveedorId, x.Proveedor!.RazonSocial, x.CodigoProveedor, x.Costo)).ToList(),
         p.Imagen != null, p.Activo));
@@ -178,6 +183,9 @@ public class ProductoService(IAppDbContext db)
             throw new NoEncontradoException("Proveedor", provId);
         if (req.CategoriaId is { } catId && !await db.CategoriasProducto.AnyAsync(c => c.Id == catId, ct))
             throw new NoEncontradoException("Categoría", catId);
+        if (req.TasaIva is { } tasa && !Iva.EsValida(tasa))
+            throw new ReglaNegocioException("La tasa de IVA debe ser 0 %, 8 % o 16 %.");
+        req.TasaIva ??= await Partidas.TasaPredeterminadaAsync(db, ct);
 
         var otros = req.OtrosProveedores.Select(x => x.ProveedorId).ToList();
         if (otros.Distinct().Count() != otros.Count)
@@ -220,6 +228,7 @@ public class ProductoService(IAppDbContext db)
         p.UnidadMedida = Limpio(req.UnidadMedida);
         p.Ubicacion = Limpio(req.Ubicacion);
         p.Precio = req.Precio;
+        p.TasaIva = req.TasaIva ?? Iva.Predeterminada;
         p.PrecioMayoreo = req.PrecioMayoreo;
         p.CantidadMayoreo = req.CantidadMayoreo;
         p.Costo = req.Costo;

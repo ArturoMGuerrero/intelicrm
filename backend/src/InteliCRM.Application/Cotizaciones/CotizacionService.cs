@@ -112,14 +112,20 @@ public class CotizacionService(IAppDbContext db)
         if (req.Moneda == Moneda.USD && req.TipoCambio is null)
             throw new ReglaNegocioException("Indica el tipo de cambio para cotizar en dólares.");
 
-        var nuevasPartidas = (await Partidas.ValidarAsync(db, req.Partidas, ct))
+        // El IVA del cliente aplica también si la cotización va a un prospecto ya convertido en cliente.
+        var clienteEfectivo = req.ClienteId
+            ?? (req.ProspectoId is { } prospId
+                ? await db.Prospectos.AsNoTracking().Where(p => p.Id == prospId).Select(p => p.ClienteId).FirstOrDefaultAsync(ct)
+                : null);
+        var nuevasPartidas = (await Partidas.ValidarAsync(db, req.Partidas, clienteEfectivo, ct))
             .Select(p => new CotizacionPartida
             {
                 ProductoId = p.ProductoId,
                 Descripcion = p.Descripcion,
                 Cantidad = p.Cantidad,
                 PrecioUnitario = p.PrecioUnitario,
-                DescuentoPorcentaje = p.DescuentoPorcentaje
+                DescuentoPorcentaje = p.DescuentoPorcentaje,
+                TasaIva = p.TasaIva,
             })
             .ToList();
 

@@ -1,3 +1,4 @@
+using InteliCRM.Domain.Common;
 using InteliCRM.Application.Common.Exceptions;
 using InteliCRM.Application.Common.Interfaces;
 using InteliCRM.Application.Cotizaciones;
@@ -7,18 +8,28 @@ using Microsoft.EntityFrameworkCore;
 namespace InteliCRM.Application.Common;
 
 /// <summary>Partida ya validada, lista para copiarse a una cotización o a un cargo.</summary>
-public record PartidaValidada(int? ProductoId, string Descripcion, decimal Cantidad, decimal PrecioUnitario, decimal DescuentoPorcentaje);
+public record PartidaValidada(int? ProductoId, string Descripcion, decimal Cantidad, decimal PrecioUnitario, decimal DescuentoPorcentaje, decimal TasaIva);
 
 public static class Partidas
 {
     /// <summary>
     /// Valida las partidas capturadas: los productos deben existir y cada partida necesita
     /// descripción. Si faltan descripción o precio se toman del producto.
+    /// Tasa de IVA de cada partida: la capturada; si no viene, la del cliente (si tiene una propia),
+    /// la del producto o, para conceptos libres, la predeterminada de la empresa.
     /// </summary>
     public static async Task<List<PartidaValidada>> ValidarAsync(
-        IAppDbContext db, IEnumerable<GuardarPartidaRequest> partidas, CancellationToken ct)
+        IAppDbContext db, IEnumerable<GuardarPartidaRequest> partidas, int? clienteId, CancellationToken ct)
     {
         var lista = partidas.ToList();
+
+        var tasaInvalida = lista.FirstOrDefault(p => p.TasaIva is { } t && !Iva.EsValida(t));
+        if (tasaInvalida is not null)
+            throw new ReglaNegocioException("La tasa de IVA debe ser 0 %, 8 % o 16 %.");
+        var tasaCliente = clienteId is { } cId
+            ? await db.Clientes.AsNoTracking().Where(c => c.Id == cId).Select(c => c.TasaIva).FirstOrDefaultAsync(ct)
+            : null;
+        var tasaEmpresa = await TasaPredeterminadaAsync(db, ct);
 
         // Cargar de una vez los productos referenciados por las partidas.
         var productoIds = lista.Where(p => p.ProductoId is not null).Select(p => p.ProductoId!.Value).Distinct().ToList();
@@ -39,8 +50,14 @@ public static class Partidas
 
             resultado.Add(new PartidaValidada(
                 partida.ProductoId, descripcion, partida.Cantidad,
-                partida.PrecioUnitario ?? producto?.Precio ?? 0, partida.DescuentoPorcentaje));
+                partida.PrecioUnitario ?? producto?.Precio ?? 0, partida.DescuentoPorcentaje,
+                partida.TasaIva ?? tasaCliente ?? producto?.TasaIva ?? tasaEmpresa));
         }
         return resultado;
     }
+
+    /// <summary>Tasa de IVA predeterminada de la empresa (16 % si no está configurada).</summary>
+    public static async Task<decimal> TasaPredeterminadaAsync(IAppDbContext db, CancellationToken ct) =>
+        await db.ConfiguracionesEmpresa.AsNoTracking().Select(c => (decimal?)c.TasaIvaPredeterminada).FirstOrDefaultAsync(ct)
+        ?? Iva.Predeterminada;
 }

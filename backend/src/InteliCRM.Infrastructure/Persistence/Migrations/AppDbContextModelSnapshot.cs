@@ -324,6 +324,10 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.Property<int?>("ProductoId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<decimal>("TasaIva")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CargoId");
@@ -541,6 +545,10 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                         .HasMaxLength(13)
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal?>("TasaIva")
+                        .HasPrecision(5, 4)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Telefono")
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
@@ -680,6 +688,10 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("SitioWeb")
                         .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TasaIvaPredeterminada")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Telefono")
@@ -900,6 +912,10 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
 
                     b.Property<int?>("ProductoId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("TasaIva")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -1790,6 +1806,10 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
                     b.Property<int>("ProductoId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<decimal>("TasaIva")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CuentaId");
@@ -2093,6 +2113,10 @@ namespace InteliCRM.Infrastructure.Persistence.Migrations
 
                     b.Property<decimal?>("StockMinimo")
                         .HasPrecision(18, 4)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TasaIva")
+                        .HasPrecision(5, 4)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Tipo")
